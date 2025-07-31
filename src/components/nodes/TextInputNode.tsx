@@ -1,0 +1,90 @@
+import React, { memo, useState } from 'react';
+import { Handle, Position } from '@xyflow/react';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Type } from 'lucide-react';
+
+interface TextInputNodeProps {
+  data: {
+    label: string;
+    value?: string;
+    placeholder?: string;
+    multiline?: boolean;
+  };
+  id: string;
+}
+
+export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
+  const [value, setValue] = useState(data.value || '');
+  const [placeholder, setPlaceholder] = useState(data.placeholder || 'Enter text...');
+  const [multiline, setMultiline] = useState(data.multiline || false);
+  const [label, setLabel] = useState(data.label || 'Text Input');
+
+  return (
+    <Card className="w-80 p-4 bg-background border-border">
+      <Handle type="target" position={Position.Top} className="w-2 h-2" />
+      
+      <div className="flex items-center gap-2 mb-3">
+        <Type className="h-4 w-4 text-primary" />
+        <Input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          className="text-sm font-medium border-none p-0 h-auto"
+          placeholder="Field label"
+        />
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <Label htmlFor={`${id}-placeholder`} className="text-xs">
+            Placeholder Text
+          </Label>
+          <Input
+            id={`${id}-placeholder`}
+            value={placeholder}
+            onChange={(e) => setPlaceholder(e.target.value)}
+            className="text-xs"
+          />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id={`${id}-multiline`}
+            checked={multiline}
+            onCheckedChange={setMultiline}
+          />
+          <Label htmlFor={`${id}-multiline`} className="text-xs">
+            Multi-line text
+          </Label>
+        </div>
+
+        <div>
+          <Label htmlFor={`${id}-value`} className="text-xs">
+            Content
+          </Label>
+          {multiline ? (
+            <Textarea
+              id={`${id}-value`}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder={placeholder}
+              className="min-h-20"
+            />
+          ) : (
+            <Input
+              id={`${id}-value`}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder={placeholder}
+            />
+          )}
+        </div>
+      </div>
+
+      <Handle type="source" position={Position.Bottom} className="w-2 h-2" />
+    </Card>
+  );
+});
