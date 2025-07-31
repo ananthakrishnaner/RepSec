@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
 import { Table, Plus, Minus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Upload, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -98,6 +99,16 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
   const handleEvidenceUpload = (testCaseIndex: number, files: FileList) => {
     console.log('Files selected:', files.length); // Debug log
     const screenshots: string[] = [];
+    const currentTestCase = testCases[testCaseIndex];
+    
+    // Get test case ID and normalize it for filename
+    const testCaseId = currentTestCase.id || `TC-${String(testCaseIndex + 1).padStart(3, '0')}`;
+    const normalizedId = testCaseId.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    
+    // Count existing evidence files to continue numbering
+    const currentEvidence = currentTestCase.evidence;
+    const existingScreenshots = currentEvidence ? currentEvidence.split('\n').filter(Boolean) : [];
+    let evidenceCounter = existingScreenshots.length + 1;
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -123,17 +134,21 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
         continue;
       }
 
-      screenshots.push(`./evidence/${file.name}`);
+      // Get file extension
+      const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'png';
+      
+      // Generate new filename based on test case ID
+      const newFileName = `${normalizedId}-evidence${evidenceCounter}.${fileExtension}`;
+      screenshots.push(`./evidence/${newFileName}`);
+      evidenceCounter++;
     }
 
     console.log('Screenshots array:', screenshots); // Debug log
 
     if (screenshots.length > 0) {
-      // Update the evidence field with new screenshot paths
-      const currentEvidence = testCases[testCaseIndex].evidence;
-      const existingScreenshots = currentEvidence ? currentEvidence.split(', ').filter(Boolean) : [];
+      // Update the evidence field with new screenshot paths (one per line)
       const allScreenshots = [...existingScreenshots, ...screenshots];
-      const evidenceString = allScreenshots.join(', ');
+      const evidenceString = allScreenshots.join('\n');
       
       console.log('Current evidence:', currentEvidence); // Debug log
       console.log('Existing screenshots:', existingScreenshots); // Debug log
@@ -144,7 +159,7 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
       
       toast({
         title: "Screenshots uploaded",
-        description: `${screenshots.length} screenshot(s) added to evidence folder. Total paths: ${allScreenshots.length}`,
+        description: `${screenshots.length} screenshot(s) renamed and added to evidence folder.`,
       });
     }
   };
@@ -306,11 +321,12 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
                   <div>
                     <Label className="text-xs">Evidence Path</Label>
                     <div className="flex gap-1">
-                      <Input
+                      <Textarea
                         value={testCase.evidence}
                         onChange={(e) => updateTestCase(index, 'evidence', e.target.value)}
-                        placeholder="./evidence/screenshot1.png"
-                        className="text-xs"
+                        placeholder="./evidence/tc-001-evidence1.png&#10;./evidence/tc-001-evidence2.png"
+                        className="text-xs min-h-[60px] resize-none font-mono text-[10px]"
+                        rows={3}
                       />
                       <Button
                         onClick={() => triggerEvidenceUpload(index)}
