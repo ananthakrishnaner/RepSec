@@ -93,10 +93,15 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
             e.stopPropagation();
             const newLabel = e.target.value;
             setLabel(newLabel);
-            // Also update the report data with the label
-            if (updateNodeData) {
-              debugLogger.info('TEXT_INPUT', '🏷️ LABEL CHANGED', { nodeId: id, label: newLabel, fieldType: data.fieldType });
-              updateNodeData(id, 'label', newLabel);
+            // The label IS the actual value for the field type
+            if (updateNodeData && data.fieldType) {
+              debugLogger.info('TEXT_INPUT', '🏷️ LABEL AS PRIMARY VALUE', { 
+                nodeId: id, 
+                label: newLabel, 
+                fieldType: data.fieldType,
+                mapping: 'This is the main field value'
+              });
+              updateNodeData(id, 'value', newLabel); // Send label as the main value
             }
           }}
           onMouseDown={(e) => e.stopPropagation()}
@@ -143,7 +148,7 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
 
         <div className="space-y-2">
           <Label htmlFor={`${id}-value`} className="text-xs font-medium text-muted-foreground">
-            Content
+            Additional Notes (Optional)
           </Label>
           {multiline ? (
             <Textarea
@@ -152,14 +157,14 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               onChange={(e) => {
                 e.stopPropagation(); 
                 const newValue = e.target.value;
-                debugLogger.info('TEXT_INPUT', '⌨️  TEXTAREA onChange EVENT', { 
+                debugLogger.info('TEXT_INPUT', '⌨️ TEXTAREA onChange - SECONDARY CONTENT', { 
                   nodeId: id, 
                   value: newValue, 
                   fieldType: data.fieldType,
                   event: 'textarea',
-                  hasHandler: !!handleValueChange
+                  note: 'This is additional content, not the main field value'
                 });
-                handleValueChange(newValue);
+                // Don't call handleValueChange here since label is the primary value
               }}
               onFocus={(e) => {
                 e.stopPropagation();
@@ -178,14 +183,14 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               onChange={(e) => {
                 e.stopPropagation();
                 const newValue = e.target.value;
-                debugLogger.info('TEXT_INPUT', '⌨️  INPUT onChange EVENT', { 
+                debugLogger.info('TEXT_INPUT', '⌨️ INPUT onChange - SECONDARY CONTENT', { 
                   nodeId: id, 
                   value: newValue, 
                   fieldType: data.fieldType,
                   event: 'input',
-                  hasHandler: !!handleValueChange
+                  note: 'This is additional content, not the main field value'
                 });
-                handleValueChange(newValue);
+                // Don't call handleValueChange here since label is the primary value
               }}
               onFocus={(e) => {
                 e.stopPropagation();
