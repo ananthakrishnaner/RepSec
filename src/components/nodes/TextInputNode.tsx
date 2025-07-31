@@ -27,7 +27,9 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
   const handleValueChange = (newValue: string) => {
     console.log('TextInputNode handleValueChange:', id, newValue);
     setValue(newValue);
-    updateNodeData?.(id, 'value', newValue);
+    if (updateNodeData) {
+      updateNodeData(id, 'value', newValue);
+    }
   };
 
   console.log('TextInputNode render:', id, 'updateNodeData:', !!updateNodeData);

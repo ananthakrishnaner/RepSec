@@ -163,11 +163,11 @@ export const ReportBuilder: React.FC = () => {
         if (node.id === nodeId) {
           const updatedData = { ...node.data, [field]: value };
           
-          // Update report data based on node type and field
-          if (node.type === 'textInput') {
-            if (nodeId === 'project-name') {
+          // Update report data based on node type and field  
+          if (node.type === 'textInput' && field === 'value') {
+            if (nodeId === 'project-name' || nodeId.includes('project')) {
               updateReportData({ projectName: value });
-            } else if (nodeId === 'scope-text') {
+            } else if (nodeId === 'scope-text' || nodeId.includes('scope')) {
               updateReportData({ scope: value });
             } else if (nodeId.includes('baseline')) {
               updateReportData({ baselines: value });
@@ -178,10 +178,23 @@ export const ReportBuilder: React.FC = () => {
             }
           } else if (node.type === 'table' && field === 'testCases') {
             updateReportData({ testCases: value });
-          } else if (node.type === 'codeSnippet' && field === 'codeSnippets') {
-            updateReportData({ codeSnippets: value });
-          } else if (node.type === 'fileUpload' && field === 'attachments') {
-            updateReportData({ attachments: value });
+          } else if (node.type === 'codeSnippet') {
+            if (field === 'content' || field === 'title' || field === 'language') {
+              const currentSnippets = reportData.codeSnippets.filter(s => s.title !== node.data.title);
+              const newSnippet = {
+                title: field === 'title' ? value : (node.data.title || 'Code Snippet'),
+                content: field === 'content' ? value : (node.data.content || ''),
+                language: field === 'language' ? value : (node.data.language || 'http')
+              };
+              updateReportData({ codeSnippets: [...currentSnippets, newSnippet] });
+            }
+          } else if (node.type === 'fileUpload' && field === 'files') {
+            const attachments = value.map((file: any) => ({
+              name: file.name,
+              url: file.url,
+              type: file.type
+            }));
+            updateReportData({ attachments });
           }
 
           return { ...node, data: updatedData };
@@ -189,7 +202,7 @@ export const ReportBuilder: React.FC = () => {
         return node;
       })
     );
-  }, [updateReportData, setNodes]);
+  }, [setNodes, updateReportData, reportData.codeSnippets]);
 
   // Memoize nodeTypes to prevent React Flow warnings
   const nodeTypes = useMemo(() => createNodeTypes(updateNodeData), [updateNodeData]);
