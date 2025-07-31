@@ -45,12 +45,13 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
     handleValueChange(testValue);
   };
 
-  // Sync with external data changes
+  // Sync with external data changes and ensure value persists
   React.useEffect(() => {
     if (data.value !== undefined && data.value !== value) {
+      appLogger.debug('🔄 Syncing external data change', { nodeId: id, newValue: data.value, currentValue: value });
       setValue(data.value);
     }
-  }, [data.value, value]);
+  }, [data.value, value, id]);
 
   appLogger.debug('📊 TextInputNode render', { nodeId: id, hasUpdateNodeData: !!updateNodeData, currentValue: value });
 

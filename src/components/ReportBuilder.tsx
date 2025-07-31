@@ -84,18 +84,16 @@ export const ReportBuilder: React.FC = () => {
       appLogger.info('📋 New report data state', newData);
       return newData;
     });
-  }, []); // Remove reportData dependency to prevent infinite loop
+  }, []);
 
   // Function to collect data from nodes and update preview
   const updatePreviewFromBuilder = () => {
-    appLogger.info('🖼️ Updating preview from builder nodes');
+    appLogger.info('🖼️ Updating preview from builder - collecting current data');
+    appLogger.debug('📊 Current reportData to copy to preview:', reportData);
     
-    // Collect data from current nodes in the builder
-    const currentData = { ...reportData };
-    
-    // Update preview data
-    setPreviewData(currentData);
-    appLogger.info('📊 Preview data updated', currentData);
+    // Copy current builder data to preview
+    setPreviewData({ ...reportData });
+    appLogger.info('✅ Preview data updated with current builder data');
   };
 
   // Standard nodes initialization - moved up to avoid "used before declaration" error
@@ -148,7 +146,9 @@ export const ReportBuilder: React.FC = () => {
 
   // Update the updateNodeData to use the new function - fix dependency to prevent render loop
   React.useEffect(() => {
+    appLogger.debug('🔧 Setting up node data update functions');
     const combinedUpdateFunction = (nodeId: string, field: string, value: any) => {
+      appLogger.debug('🔄 Combined update function called', { nodeId, field, value });
       updateNodeData(nodeId, field, value);
       updateNodeInState(nodeId, field, value);
     };
@@ -159,7 +159,7 @@ export const ReportBuilder: React.FC = () => {
         data: { ...node.data, updateNodeData: combinedUpdateFunction }
       }))
     );
-  }, []); // Remove dependencies that cause render loop
+  }, [nodes.length]); // Only re-run when nodes are added/removed
 
   // Create node types that use updateNodeData from data prop
   const nodeTypes = {
@@ -302,8 +302,11 @@ export const ReportBuilder: React.FC = () => {
             </Button>
             <Button 
               onClick={() => {
+                appLogger.info('🖼️ Show Preview clicked - updating preview and switching tabs');
                 updatePreviewFromBuilder();
-                handleTabChange('preview');
+                setTimeout(() => {
+                  handleTabChange('preview');
+                }, 100); // Small delay to ensure state update completes
               }}
               variant="outline"
               className="w-full bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 border-primary/30 hover:border-primary/50 text-primary hover:text-primary/90 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
