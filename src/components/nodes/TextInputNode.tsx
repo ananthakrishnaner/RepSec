@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Type } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface TextInputNodeProps {
   data: {
@@ -25,14 +26,21 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
   const [label, setLabel] = useState(data.label || 'Text Input');
 
   const handleValueChange = (newValue: string) => {
-    console.log('TextInputNode handleValueChange TRIGGERED:', id, newValue);
+    console.log('🎯 TextInputNode handleValueChange TRIGGERED:', id, newValue);
     setValue(newValue);
     if (updateNodeData) {
-      console.log('Calling updateNodeData:', id, 'value', newValue);
+      console.log('✅ Calling updateNodeData:', id, 'value', newValue);
       updateNodeData(id, 'value', newValue);
     } else {
-      console.log('updateNodeData is not available!');
+      console.log('❌ updateNodeData is not available!');
     }
+  };
+
+  // Test function to bypass React Flow
+  const testUpdate = () => {
+    console.log('🧪 TEST UPDATE BUTTON CLICKED');
+    const testValue = 'Test value ' + Date.now();
+    handleValueChange(testValue);
   };
 
   // Sync with external data changes
@@ -42,7 +50,7 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
     }
   }, [data.value, value]);
 
-  console.log('TextInputNode render:', id, 'updateNodeData:', !!updateNodeData, 'current value:', value);
+  console.log('📊 TextInputNode render:', id, 'updateNodeData:', !!updateNodeData, 'current value:', value);
 
   return (
     <Card className="w-80 p-4 bg-gradient-to-br from-card to-accent/30 border-border shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm">
@@ -98,6 +106,14 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
           <Label htmlFor={`${id}-value`} className="text-xs font-medium text-muted-foreground">
             Content
           </Label>
+          <Button 
+            onClick={testUpdate} 
+            size="sm" 
+            variant="outline" 
+            className="w-full mb-2 text-xs"
+          >
+            🧪 Test Update (Click to test data flow)
+          </Button>
           {multiline ? (
             <Textarea
               id={`${id}-value`}
