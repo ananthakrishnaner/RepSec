@@ -297,35 +297,38 @@ All colors MUST be HSL.
   }
 }
 
-/* Custom scrollbar styles for better visibility */
-.scrollbar-visible {
-  scrollbar-width: thick;
-  scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+/* Force visible scrollbars for table container */
+.table-scroll-container {
+  overflow: auto !important;
+  scrollbar-width: thick !important;
+  scrollbar-color: #3b82f6 #e2e8f0 !important;
 }
 
-.scrollbar-visible::-webkit-scrollbar {
-  width: 16px;
-  height: 16px;
+.table-scroll-container::-webkit-scrollbar {
+  width: 18px !important;
+  height: 18px !important;
+  background: #f1f5f9 !important;
 }
 
-.scrollbar-visible::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: 8px;
-  border: 2px solid hsl(var(--background));
+.table-scroll-container::-webkit-scrollbar-track {
+  background: #e2e8f0 !important;
+  border-radius: 10px !important;
+  border: 2px solid #f8fafc !important;
 }
 
-.scrollbar-visible::-webkit-scrollbar-thumb {
-  background: hsl(var(--primary));
-  border-radius: 8px;
-  border: 3px solid hsl(var(--muted));
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  border-radius: 10px !important;
+  border: 2px solid #e2e8f0 !important;
+  min-height: 30px !important;
 }
 
-.scrollbar-visible::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary)/0.8);
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
 }
 
-.scrollbar-visible::-webkit-scrollbar-corner {
-  background: hsl(var(--muted));
+.table-scroll-container::-webkit-scrollbar-corner {
+  background: #e2e8f0 !important;
 }
 
 @layer base {

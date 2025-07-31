@@ -86,11 +86,13 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
         </Button>
       </div>
 
-      <div className="h-96 overflow-auto border border-border rounded-md scrollbar-visible">
-        <div className="space-y-4 pr-4 min-w-[1200px]">
+      <div 
+        className="table-scroll-container h-96 border-2 border-primary/20 rounded-md bg-muted/5"
+      >
+        <div className="space-y-4 p-4 min-w-[1400px]">
           {testCases.map((testCase, index) => (
-            <div key={index} className="border border-border rounded">
-              <div className="flex items-center justify-between p-3 border-b border-border">
+            <div key={index} className="border border-border rounded bg-background/80">
+              <div className="flex items-center justify-between p-3 border-b border-border bg-muted/20">
                 <Label className="text-xs font-medium">Test Case #{index + 1}</Label>
                 {testCases.length > 1 && (
                   <Button
@@ -104,8 +106,8 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
                 )}
               </div>
               
-              <div className="p-3">
-                <div className="grid grid-cols-8 gap-3 min-w-[1100px]">
+              <div className="p-4 bg-background/50">
+                <div className="grid grid-cols-8 gap-4 min-w-[1300px]">
                   <div>
                     <Label className="text-xs">ID</Label>
                     <Input
