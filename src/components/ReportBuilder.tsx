@@ -116,52 +116,40 @@ export const ReportBuilder: React.FC = () => {
   }, []);
 
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
-    console.log('updateNodeData called:', nodeId, field, value);
+    console.log('🔄 updateNodeData called:', nodeId, field, value);
+    
+    // Immediately update report data for live preview
+    if (field === 'value') {
+      console.log('📝 Updating report data for node:', nodeId);
+      if (nodeId === 'project-name' || nodeId.includes('project')) {
+        console.log('🏷️ Setting project name:', value);
+        updateReportData({ projectName: value });
+      } else if (nodeId === 'scope-text' || nodeId.includes('scope')) {
+        console.log('🎯 Setting scope:', value);
+        updateReportData({ scope: value });
+      } else if (nodeId.includes('baseline')) {
+        console.log('📋 Setting baselines:', value);
+        updateReportData({ baselines: value });
+      } else if (nodeId.includes('change')) {
+        console.log('🔄 Setting change description:', value);
+        updateReportData({ changeDescription: value });
+      } else if (nodeId.includes('stories')) {
+        console.log('📖 Setting linked stories:', value);
+        updateReportData({ linkedStories: value });
+      }
+    }
+
+    // Also update the node data
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
           const updatedData = { ...node.data, [field]: value };
-          
-          // Update report data based on node type and field  
-          if (node.type === 'textInput' && field === 'value') {
-            if (nodeId === 'project-name' || nodeId.includes('project')) {
-              updateReportData({ projectName: value });
-            } else if (nodeId === 'scope-text' || nodeId.includes('scope')) {
-              updateReportData({ scope: value });
-            } else if (nodeId.includes('baseline')) {
-              updateReportData({ baselines: value });
-            } else if (nodeId.includes('change')) {
-              updateReportData({ changeDescription: value });
-            } else if (nodeId.includes('stories')) {
-              updateReportData({ linkedStories: value });
-            }
-          } else if (node.type === 'table' && field === 'testCases') {
-            updateReportData({ testCases: value });
-          } else if (node.type === 'codeSnippet') {
-            if (field === 'content' || field === 'title' || field === 'language') {
-              const currentSnippets = reportData.codeSnippets.filter(s => s.title !== node.data.title);
-              const newSnippet = {
-                title: field === 'title' ? value : (node.data.title || 'Code Snippet'),
-                content: field === 'content' ? value : (node.data.content || ''),
-                language: field === 'language' ? value : (node.data.language || 'http')
-              };
-              updateReportData({ codeSnippets: [...currentSnippets, newSnippet] });
-            }
-          } else if (node.type === 'fileUpload' && field === 'files') {
-            const attachments = value.map((file: any) => ({
-              name: file.name,
-              url: file.url,
-              type: file.type
-            }));
-            updateReportData({ attachments });
-          }
-
           return { ...node, data: updatedData };
         }
         return node;
       })
     );
-  }, [setNodes, updateReportData, reportData.codeSnippets]);
+  }, [setNodes, updateReportData]);
 
   // Memoize nodeTypes to prevent React Flow warnings
   const nodeTypes = useMemo(() => createNodeTypes(updateNodeData), [updateNodeData]);

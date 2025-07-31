@@ -146,6 +146,12 @@ Your report content will appear here as you add and fill in components.`;
         <div className="max-w-4xl mx-auto p-6">
           <div className="bg-card/50 backdrop-blur-sm rounded-lg border border-border p-8 shadow-lg">
             <div className="prose prose-slate dark:prose-invert max-w-none">
+              {/* Debug info to show current data state */}
+              <div className="mb-4 p-3 bg-primary/5 rounded border-l-4 border-primary/30">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Preview Status:</strong> {reportData.projectName || reportData.scope || reportData.testCases.length > 0 ? 'Showing your report content' : 'Waiting for content - drag components from sidebar and fill them out'}
+                </p>
+              </div>
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeHighlight]}
