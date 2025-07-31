@@ -86,7 +86,7 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
         </Button>
       </div>
 
-      <ScrollArea className="max-h-80">
+      <ScrollArea className="h-96">
         <div className="space-y-4 pr-4">
           {testCases.map((testCase, index) => (
             <div key={index} className="border border-border rounded">
