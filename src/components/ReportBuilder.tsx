@@ -64,13 +64,14 @@ export const ReportBuilder: React.FC = () => {
   });
 
   const updateReportData = useCallback((updates: Partial<ReportData>) => {
-    console.log('📊 Updating report data:', updates);
+    console.log('📊 updateReportData called with:', updates);
+    console.log('📊 Current state before update:', reportData);
     setReportData((prev) => {
       const newData = { ...prev, ...updates };
       console.log('📋 New report data state:', newData);
       return newData;
     });
-  }, []);
+  }, [reportData]);
 
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
     console.log('🔄 Node data update:', nodeId, field, value);
@@ -182,8 +183,10 @@ export const ReportBuilder: React.FC = () => {
 
   // TEMPORARY: Add a direct test of data flow
   const testDataFlow = () => {
-    console.log('🧪 DIRECT TEST: Setting test data');
-    setReportData({
+    console.log('🧪 DIRECT TEST: Setting test data - BEFORE UPDATE');
+    console.log('📊 Current reportData before test:', reportData);
+    
+    const testData = {
       projectName: 'TEST PROJECT NAME',
       scope: 'TEST SCOPE CONTENT',
       baselines: 'TEST BASELINES',
@@ -192,7 +195,15 @@ export const ReportBuilder: React.FC = () => {
       linkedStories: 'TEST LINKED STORIES',
       codeSnippets: [],
       attachments: []
-    });
+    };
+    
+    console.log('📊 Setting test data:', testData);
+    setReportData(testData);
+    
+    // Force re-render check
+    setTimeout(() => {
+      console.log('📊 ReportData after test (delayed check):', reportData);
+    }, 100);
   };
 
   const exportMarkdown = useCallback(() => {
@@ -331,6 +342,11 @@ export const ReportBuilder: React.FC = () => {
             </TabsContent>
             
             <TabsContent value="preview" className="flex-1 m-0 p-0 animate-fade-in">
+              {/* Debug log for rendering */}
+              {(() => {
+                console.log('🖼️ Rendering ReportPreview tab with data:', reportData);
+                return null;
+              })()}
               <ReportPreview reportData={reportData} />
             </TabsContent>
 

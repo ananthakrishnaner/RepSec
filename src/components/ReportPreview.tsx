@@ -38,7 +38,8 @@ interface ReportPreviewProps {
 }
 
 export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
-  console.log('ReportPreview received data:', reportData);
+  console.log('🖼️ ReportPreview render - received data:', reportData);
+  console.log('🖼️ Data object keys:', Object.keys(reportData));
   
   // Debug: Show what data we actually have
   React.useEffect(() => {
