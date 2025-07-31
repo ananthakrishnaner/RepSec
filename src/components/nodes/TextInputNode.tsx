@@ -54,8 +54,12 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
         </div>
         <Input
           value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          className="text-sm font-semibold border-none p-0 h-auto bg-transparent focus:ring-0 focus:border-transparent"
+          onChange={(e) => {
+            e.stopPropagation();
+            setLabel(e.target.value);
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          className="text-sm font-semibold border-none p-0 h-auto bg-transparent focus:ring-0 focus:border-transparent nodrag nopan"
           placeholder="Field label"
         />
       </div>
@@ -68,8 +72,12 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
           <Input
             id={`${id}-placeholder`}
             value={placeholder}
-            onChange={(e) => setPlaceholder(e.target.value)}
-            className="modern-input text-xs"
+            onChange={(e) => {
+              e.stopPropagation();
+              setPlaceholder(e.target.value);
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="modern-input text-xs nodrag nopan"
             placeholder="Enter placeholder..."
           />
         </div>
@@ -95,22 +103,28 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
               id={`${id}-value`}
               value={value}
               onChange={(e) => {
+                e.stopPropagation(); // Prevent React Flow from intercepting
                 console.log('Textarea onChange triggered:', e.target.value);
                 handleValueChange(e.target.value);
               }}
+              onMouseDown={(e) => e.stopPropagation()} // Prevent drag interference
+              onKeyDown={(e) => e.stopPropagation()} // Prevent key interference
               placeholder={placeholder}
-              className="modern-input min-h-20 resize-none"
+              className="modern-input min-h-20 resize-none nodrag nopan"
             />
           ) : (
             <Input
               id={`${id}-value`}
               value={value}
               onChange={(e) => {
+                e.stopPropagation(); // Prevent React Flow from intercepting
                 console.log('Input onChange triggered:', e.target.value);
                 handleValueChange(e.target.value);
               }}
+              onMouseDown={(e) => e.stopPropagation()} // Prevent drag interference
+              onKeyDown={(e) => e.stopPropagation()} // Prevent key interference
               placeholder={placeholder}
-              className="modern-input"
+              className="modern-input nodrag nopan"
             />
           )}
         </div>
