@@ -47,26 +47,55 @@ export const CodeSnippetNode = memo<CodeSnippetNodeProps>(({ data, id }) => {
     setLanguage(newLanguage);
     updateNodeData?.(id, 'language', newLanguage);
     
-    // Change placeholder and example content based on language
-    const examples = {
-      javascript: 'function example() {\n  console.log("Hello World");\n}',
-      python: 'def example():\n    print("Hello World")',
-      bash: '#!/bin/bash\necho "Hello World"',
-      sql: 'SELECT * FROM users WHERE active = 1;',
-      json: '{\n  "message": "Hello World",\n  "status": "success"\n}',
-      xml: '<?xml version="1.0"?>\n<message>Hello World</message>',
-      curl: 'curl -X GET https://api.example.com/users',
-      http: 'GET /api/users HTTP/1.1\nHost: example.com\nAuthorization: Bearer token123'
-    };
-    
-    const newExample = examples[newLanguage] || examples.javascript;
-    setContent(newExample);
-    updateNodeData?.(id, 'content', newExample);
+    // Only auto-fill examples for non-HTTP languages
+    if (newLanguage !== 'http') {
+      const examples = {
+        javascript: 'function example() {\n  console.log("Hello World");\n}',
+        python: 'def example():\n    print("Hello World")',
+        bash: '#!/bin/bash\necho "Hello World"',
+        sql: 'SELECT * FROM users WHERE active = 1;',
+        json: '{\n  "message": "Hello World",\n  "status": "success"\n}',
+        xml: '<?xml version="1.0"?>\n<message>Hello World</message>',
+        curl: 'curl -X GET https://api.example.com/users'
+      };
+      
+      const newExample = examples[newLanguage] || examples.javascript;
+      setContent(newExample);
+      updateNodeData?.(id, 'content', newExample);
+    }
   };
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle);
     updateNodeData?.(id, 'title', newTitle);
+  };
+
+  const formatAsHttpRequest = () => {
+    const httpTemplate = `POST /api/login HTTP/1.1
+Host: example.com
+Content-Type: application/json
+Content-Length: 45
+
+{
+  "username": "admin",
+  "password": "password123"
+}`;
+    setContent(httpTemplate);
+    updateNodeData?.(id, 'content', httpTemplate);
+  };
+
+  const formatAsHttpResponse = () => {
+    const httpTemplate = `HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 76
+
+{
+  "status": "success",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user_id": 123
+}`;
+    setContent(httpTemplate);
+    updateNodeData?.(id, 'content', httpTemplate);
   };
 
   const copyToClipboard = () => {
@@ -124,12 +153,34 @@ export const CodeSnippetNode = memo<CodeSnippetNodeProps>(({ data, id }) => {
             >
               <Copy className="h-3 w-3" />
             </Button>
+        </div>
+
+        {/* Show HTTP request/response buttons only for HTTP language */}
+        {language === 'http' && (
+          <div className="flex gap-2">
+            <Button
+              onClick={formatAsHttpRequest}
+              size="sm"
+              variant="outline"
+              className="flex-1 text-xs"
+            >
+              HTTP Request
+            </Button>
+            <Button
+              onClick={formatAsHttpResponse}
+              size="sm"
+              variant="outline"
+              className="flex-1 text-xs"
+            >
+              HTTP Response
+            </Button>
           </div>
+        )}
           <Textarea
             id={`${id}-content`}
             value={content}
             onChange={(e) => handleContentChange(e.target.value)}
-            placeholder={`Enter your ${language} code here...`}
+            placeholder={language === 'http' ? 'Enter HTTP request or response...' : `Enter your ${language} code here...`}
             className="font-mono text-xs min-h-32"
           />
         </div>
