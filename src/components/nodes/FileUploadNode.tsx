@@ -68,11 +68,14 @@ export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
       // Create object URL for preview
       const url = URL.createObjectURL(file);
       
+      // Generate evidence folder path
+      const evidencePath = `./evidence/${file.name}`;
+      
       newFiles.push({
         name: file.name,
         type: file.type,
         size: file.size,
-        url: url,
+        url: evidencePath, // Use evidence folder path instead of object URL
       });
     }
 
@@ -82,8 +85,8 @@ export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
     
     if (newFiles.length > 0) {
       toast({
-        title: "Files uploaded",
-        description: `${newFiles.length} file(s) successfully uploaded.`,
+        title: "Files uploaded to evidence folder",
+        description: `${newFiles.length} file(s) successfully uploaded to ./evidence/`,
       });
     }
   };
@@ -109,11 +112,14 @@ export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
   };
 
   const removeFile = (index: number) => {
-    const fileToRemove = files[index];
-    URL.revokeObjectURL(fileToRemove.url); // Clean up object URL
     const updatedFiles = files.filter((_, i) => i !== index);
     setFiles(updatedFiles);
     updateNodeData?.(id, 'files', updatedFiles);
+    
+    toast({
+      title: "File removed",
+      description: "File removed from evidence folder",
+    });
   };
 
   const formatFileSize = (bytes: number) => {
@@ -171,6 +177,8 @@ export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
         </div>
 
         <div className="text-xs text-muted-foreground">
+          📁 Files will be saved to: <code className="bg-muted px-1 rounded">./evidence/</code>
+          <br />
           Supported: Images, PDFs, Word docs (max 10MB each)
         </div>
 
@@ -186,9 +194,10 @@ export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
                   {getFileIcon(file.type)}
                   <div className="flex-1 min-w-0">
                     <p className="truncate font-medium">{file.name}</p>
-                    <p className="text-muted-foreground">
-                      {formatFileSize(file.size)}
-                    </p>
+                    <div className="text-muted-foreground space-y-1">
+                      <p>{formatFileSize(file.size)}</p>
+                      <p className="text-primary text-[10px] font-mono">./evidence/{file.name}</p>
+                    </div>
                   </div>
                   <Button
                     onClick={() => removeFile(index)}
