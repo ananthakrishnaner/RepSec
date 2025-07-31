@@ -36,6 +36,8 @@ export const CodeSnippetNode = memo<CodeSnippetNodeProps>(({ data, id }) => {
   const [title, setTitle] = useState(data.title || 'Code Snippet');
   const [content, setContent] = useState(data.content || '');
   const [language, setLanguage] = useState(data.language || 'http');
+  const [httpRequest, setHttpRequest] = useState('');
+  const [httpResponse, setHttpResponse] = useState('');
   const { toast } = useToast();
 
   const handleContentChange = (newContent: string) => {
@@ -80,8 +82,8 @@ Content-Length: 45
   "username": "admin",
   "password": "password123"
 }`;
-    setContent(httpTemplate);
-    updateNodeData?.(id, 'content', httpTemplate);
+    setHttpRequest(httpTemplate);
+    updateHttpContent(httpTemplate, httpResponse);
   };
 
   const formatAsHttpResponse = () => {
@@ -94,8 +96,20 @@ Content-Length: 76
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user_id": 123
 }`;
-    setContent(httpTemplate);
-    updateNodeData?.(id, 'content', httpTemplate);
+    setHttpResponse(httpTemplate);
+    updateHttpContent(httpRequest, httpTemplate);
+  };
+
+  const updateHttpContent = (request: string, response: string) => {
+    let combined = '';
+    if (request) {
+      combined += `## HTTP Request\n\n\`\`\`http\n${request}\n\`\`\`\n\n`;
+    }
+    if (response) {
+      combined += `## HTTP Response\n\n\`\`\`http\n${response}\n\`\`\`\n\n`;
+    }
+    setContent(combined);
+    updateNodeData?.(id, 'content', combined);
   };
 
   const copyToClipboard = () => {
@@ -157,24 +171,29 @@ Content-Length: 76
 
         {/* Show HTTP request/response buttons only for HTTP language */}
         {language === 'http' && (
-          <div className="flex gap-2">
-            <Button
-              onClick={formatAsHttpRequest}
-              size="sm"
-              variant="outline"
-              className="flex-1 text-xs"
-            >
-              HTTP Request
-            </Button>
-            <Button
-              onClick={formatAsHttpResponse}
-              size="sm"
-              variant="outline"
-              className="flex-1 text-xs"
-            >
-              HTTP Response
-            </Button>
-          </div>
+          <>
+            <div className="flex gap-2">
+              <Button
+                onClick={formatAsHttpRequest}
+                size="sm"
+                variant="outline"
+                className="flex-1 text-xs"
+              >
+                Add HTTP Request
+              </Button>
+              <Button
+                onClick={formatAsHttpResponse}
+                size="sm"
+                variant="outline"
+                className="flex-1 text-xs"
+              >
+                Add HTTP Response
+              </Button>
+            </div>
+            <div className="text-xs text-muted-foreground text-center">
+              Click both buttons to show request + response
+            </div>
+          </>
         )}
           <Textarea
             id={`${id}-content`}
