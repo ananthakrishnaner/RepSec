@@ -29,20 +29,31 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
   const [label, setLabel] = useState(data.label || 'Text Input');
 
   const handleValueChange = (newValue: string) => {
-    debugLogger.info('TEXT_INPUT', 'Value changed', { 
+    debugLogger.info('TEXT_INPUT', '🔥 VALUE CHANGE TRIGGERED', { 
       nodeId: id, 
       fieldType: data.fieldType, 
       value: newValue,
-      previousValue: value 
+      previousValue: value,
+      hasUpdateNodeData: !!updateNodeData,
+      label: data.label
     });
     
     setValue(newValue);
     if (updateNodeData) {
-      debugLogger.debug('TEXT_INPUT', 'Calling updateNodeData', { nodeId: id, field: 'value', value: newValue });
+      debugLogger.info('TEXT_INPUT', '📡 CALLING updateNodeData', { 
+        nodeId: id, 
+        field: 'value', 
+        value: newValue, 
+        fieldType: data.fieldType 
+      });
       updateNodeData(id, 'value', newValue);
-      debugLogger.success('TEXT_INPUT', 'updateNodeData called successfully');
+      debugLogger.success('TEXT_INPUT', '✅ updateNodeData called successfully');
     } else {
-      debugLogger.error('TEXT_INPUT', 'updateNodeData not available', { nodeId: id, fieldType: data.fieldType });
+      debugLogger.error('TEXT_INPUT', '❌ updateNodeData NOT AVAILABLE', { 
+        nodeId: id, 
+        fieldType: data.fieldType,
+        dataKeys: Object.keys(data)
+      });
     }
   };
 
@@ -58,12 +69,14 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
     }
   }, [data.value, value, id]);
 
-  debugLogger.debug('TEXT_INPUT', 'Component render', { 
+  debugLogger.info('TEXT_INPUT', '🎯 COMPONENT RENDER', { 
     nodeId: id, 
     hasUpdateNodeData: !!updateNodeData, 
     currentValue: value, 
     fieldType: data.fieldType, 
-    label: data.label 
+    label: data.label,
+    placeholder: data.placeholder,
+    allDataProps: Object.keys(data)
   });
 
   return (
@@ -127,7 +140,13 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               onChange={(e) => {
                 e.stopPropagation(); 
                 const newValue = e.target.value;
-                debugLogger.info('TEXT_INPUT', 'Textarea onChange event', { nodeId: id, value: newValue, fieldType: data.fieldType });
+                debugLogger.info('TEXT_INPUT', '⌨️  TEXTAREA onChange EVENT', { 
+                  nodeId: id, 
+                  value: newValue, 
+                  fieldType: data.fieldType,
+                  event: 'textarea',
+                  hasHandler: !!handleValueChange
+                });
                 handleValueChange(newValue);
               }}
               onFocus={(e) => {
@@ -147,7 +166,13 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               onChange={(e) => {
                 e.stopPropagation();
                 const newValue = e.target.value;
-                debugLogger.info('TEXT_INPUT', 'Input onChange event', { nodeId: id, value: newValue, fieldType: data.fieldType });
+                debugLogger.info('TEXT_INPUT', '⌨️  INPUT onChange EVENT', { 
+                  nodeId: id, 
+                  value: newValue, 
+                  fieldType: data.fieldType,
+                  event: 'input',
+                  hasHandler: !!handleValueChange
+                });
                 handleValueChange(newValue);
               }}
               onFocus={(e) => {
