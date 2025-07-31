@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react';
-import { appLogger } from '../LogViewer';
+import { debugLogger } from '../DebugLogger';
 import { Handle, Position } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,21 +29,42 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
   const [label, setLabel] = useState(data.label || 'Text Input');
 
   const handleValueChange = (newValue: string) => {
+    debugLogger.info('TEXT_INPUT', 'Value changed', { 
+      nodeId: id, 
+      fieldType: data.fieldType, 
+      value: newValue,
+      previousValue: value 
+    });
+    
     setValue(newValue);
     if (updateNodeData) {
+      debugLogger.debug('TEXT_INPUT', 'Calling updateNodeData', { nodeId: id, field: 'value', value: newValue });
       updateNodeData(id, 'value', newValue);
+      debugLogger.success('TEXT_INPUT', 'updateNodeData called successfully');
+    } else {
+      debugLogger.error('TEXT_INPUT', 'updateNodeData not available', { nodeId: id, fieldType: data.fieldType });
     }
   };
 
   // Sync with external data changes and ensure value persists
   React.useEffect(() => {
     if (data.value !== undefined && data.value !== value) {
-      appLogger.debug('🔄 Syncing external data change', { nodeId: id, newValue: data.value, currentValue: value });
+      debugLogger.debug('TEXT_INPUT', 'Syncing external data change', { 
+        nodeId: id, 
+        newValue: data.value, 
+        currentValue: value 
+      });
       setValue(data.value);
     }
   }, [data.value, value, id]);
 
-  appLogger.debug('📊 TextInputNode render', { nodeId: id, hasUpdateNodeData: !!updateNodeData, currentValue: value, fieldType: data.fieldType, label: data.label });
+  debugLogger.debug('TEXT_INPUT', 'Component render', { 
+    nodeId: id, 
+    hasUpdateNodeData: !!updateNodeData, 
+    currentValue: value, 
+    fieldType: data.fieldType, 
+    label: data.label 
+  });
 
   return (
     <Card className="w-80 p-4 bg-gradient-to-br from-card to-accent/30 border-border shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm">
@@ -106,12 +127,12 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               onChange={(e) => {
                 e.stopPropagation(); 
                 const newValue = e.target.value;
-                appLogger.info('📝 TEXTAREA CHANGE EVENT', { nodeId: id, value: newValue, fieldType: data.fieldType });
+                debugLogger.info('TEXT_INPUT', 'Textarea onChange event', { nodeId: id, value: newValue, fieldType: data.fieldType });
                 handleValueChange(newValue);
               }}
               onFocus={(e) => {
                 e.stopPropagation();
-                appLogger.debug('🎯 Textarea focused', { nodeId: id });
+                debugLogger.debug('TEXT_INPUT', 'Textarea focused', { nodeId: id });
               }}
               onMouseDown={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
@@ -126,12 +147,12 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               onChange={(e) => {
                 e.stopPropagation();
                 const newValue = e.target.value;
-                appLogger.info('📝 INPUT CHANGE EVENT', { nodeId: id, value: newValue, fieldType: data.fieldType });
+                debugLogger.info('TEXT_INPUT', 'Input onChange event', { nodeId: id, value: newValue, fieldType: data.fieldType });
                 handleValueChange(newValue);
               }}
               onFocus={(e) => {
                 e.stopPropagation();
-                appLogger.debug('🎯 Input focused', { nodeId: id });
+                debugLogger.debug('TEXT_INPUT', 'Input focused', { nodeId: id });
               }}
               onMouseDown={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}

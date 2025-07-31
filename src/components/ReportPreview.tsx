@@ -1,5 +1,5 @@
 import React from 'react';
-import { appLogger } from './LogViewer';
+import { debugLogger } from './DebugLogger';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -39,7 +39,7 @@ interface ReportPreviewProps {
 }
 
 export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
-  console.log('🖼️ PREVIEW COMPONENT: Received data:', reportData);
+  debugLogger.info('PREVIEW_COMPONENT', 'ReportPreview component rendered', reportData);
   
   // Check if we have any meaningful data
   const hasData = reportData.projectName || 
@@ -51,12 +51,18 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
                  reportData.codeSnippets.length > 0 || 
                  reportData.attachments.length > 0;
 
-  console.log('🔍 PREVIEW: Has meaningful data?', hasData);
-  console.log('🔍 PREVIEW: Project name specifically:', reportData.projectName);
+  debugLogger.info('PREVIEW_COMPONENT', `Has meaningful data: ${hasData}`, {
+    projectName: reportData.projectName || '(empty)',
+    scope: reportData.scope || '(empty)',
+    baselines: reportData.baselines || '(empty)',
+    changeDescription: reportData.changeDescription || '(empty)',
+    linkedStories: reportData.linkedStories || '(empty)',
+    hasData
+  });
   
   // Debug: Show what data we actually have
   React.useEffect(() => {
-    appLogger.info('🖼️ ReportPreview data changed', {
+    debugLogger.debug('PREVIEW_COMPONENT', 'Data effect triggered', {
       projectName: reportData.projectName || '(empty)',
       scope: reportData.scope || '(empty)',
       hasTestCases: reportData.testCases.length > 0,
@@ -66,19 +72,24 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
     });
   }, [reportData, hasData]);
   const generateMarkdown = (): string => {
+    debugLogger.debug('MARKDOWN_GEN', 'Generating markdown from data', reportData);
+    
     let markdown = '';
 
     // Only add content if it actually exists - no placeholders
     if (reportData.projectName) {
       markdown += `# ${reportData.projectName}\n\n`;
+      debugLogger.debug('MARKDOWN_GEN', 'Added project name to markdown');
     }
 
     if (reportData.scope) {
       markdown += `## Scope of Work\n${reportData.scope}\n\n`;
+      debugLogger.debug('MARKDOWN_GEN', 'Added scope to markdown');
     }
 
     if (reportData.baselines) {
       markdown += `## Baselines for Review\n${reportData.baselines}\n\n`;
+      debugLogger.debug('MARKDOWN_GEN', 'Added baselines to markdown');
     }
 
     if (reportData.testCases.length > 0) {
@@ -110,9 +121,15 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
 
     // If there's no content, show empty state
     if (!markdown.trim()) {
+      debugLogger.warn('MARKDOWN_GEN', 'No content generated - returning empty state');
       return '';
     }
 
+    debugLogger.success('MARKDOWN_GEN', 'Markdown generated successfully', { 
+      length: markdown.length, 
+      hasContent: !!markdown.trim() 
+    });
+    
     return markdown;
   };
 

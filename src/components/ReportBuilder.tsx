@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { LogViewer, appLogger } from './LogViewer';
+import { debugLogger, DebugLogViewer } from './DebugLogger';
 import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Edge, Node, Background, Controls, MiniMap } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Card } from '@/components/ui/card';
@@ -48,6 +48,7 @@ export const ReportBuilder: React.FC = () => {
   
   // Add tab change logging
   const handleTabChange = (newTab: string) => {
+    debugLogger.info('TAB_CHANGE', `Switching from ${activeTab} to ${newTab}`, { from: activeTab, to: newTab });
     setActiveTab(newTab);
   };
   
@@ -75,20 +76,32 @@ export const ReportBuilder: React.FC = () => {
   });
 
   const updateReportData = useCallback((updates: Partial<ReportData>) => {
-    appLogger.info('📊 updateReportData called', updates);
+    debugLogger.info('REPORT_DATA', 'updateReportData called', updates);
     setReportData((prev) => {
-      appLogger.debug('📊 Current state before update', prev);
+      debugLogger.debug('REPORT_DATA', 'Previous state', prev);
       const newData = { ...prev, ...updates };
-      appLogger.info('📋 New report data state', newData);
+      debugLogger.success('REPORT_DATA', 'New state set', newData);
       return newData;
     });
   }, []);
 
   // Function to collect data from nodes and update preview
   const updatePreviewFromBuilder = () => {
-    console.log('🔍 SHOW PREVIEW: Current reportData:', reportData);
+    debugLogger.info('PREVIEW_UPDATE', 'Show Preview clicked - collecting builder data');
+    debugLogger.debug('PREVIEW_UPDATE', 'Current reportData before copy', reportData);
+    
+    const hasAnyData = Object.values(reportData).some(value => 
+      Array.isArray(value) ? value.length > 0 : Boolean(value)
+    );
+    
+    debugLogger.info('PREVIEW_UPDATE', `Builder has data: ${hasAnyData}`, { 
+      projectName: reportData.projectName || '(empty)',
+      scope: reportData.scope || '(empty)',
+      hasContent: hasAnyData 
+    });
+    
     setPreviewData({ ...reportData });
-    console.log('✅ SHOW PREVIEW: Preview data set to:', reportData);
+    debugLogger.success('PREVIEW_UPDATE', 'Preview data state updated', reportData);
   };
 
   // Standard nodes initialization - moved up to avoid "used before declaration" error
@@ -96,31 +109,41 @@ export const ReportBuilder: React.FC = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
-    console.log('🔄 UPDATE NODE DATA: Called with', { nodeId, field, value });
+    debugLogger.info('NODE_UPDATE', 'updateNodeData called', { nodeId, field, value });
     
     if (field === 'value') {
       const node = nodes.find(n => n.id === nodeId);
       const fieldType = node?.data?.fieldType;
       
-      console.log('🔍 FIELD MAPPING: Found fieldType:', fieldType);
+      debugLogger.debug('NODE_UPDATE', 'Field mapping lookup', { 
+        nodeId, 
+        fieldType, 
+        nodeFound: !!node,
+        allNodes: nodes.map(n => ({ id: n.id, fieldType: n.data?.fieldType }))
+      });
       
       if (fieldType === 'projectName') {
-        console.log('🏷️ UPDATING PROJECT NAME:', value);
+        debugLogger.success('NODE_UPDATE', 'Mapping to PROJECT NAME', { value });
         updateReportData({ projectName: value });
       } else if (fieldType === 'scope') {
-        console.log('🎯 UPDATING SCOPE:', value);
+        debugLogger.success('NODE_UPDATE', 'Mapping to SCOPE', { value });
         updateReportData({ scope: value });
       } else if (fieldType === 'baselines') {
-        console.log('📋 UPDATING BASELINES:', value);
+        debugLogger.success('NODE_UPDATE', 'Mapping to BASELINES', { value });
         updateReportData({ baselines: value });
       } else if (fieldType === 'changeDescription') {
-        console.log('🔄 UPDATING CHANGE DESCRIPTION:', value);
+        debugLogger.success('NODE_UPDATE', 'Mapping to CHANGE DESCRIPTION', { value });
         updateReportData({ changeDescription: value });
       } else if (fieldType === 'linkedStories') {
-        console.log('📖 UPDATING LINKED STORIES:', value);
+        debugLogger.success('NODE_UPDATE', 'Mapping to LINKED STORIES', { value });
         updateReportData({ linkedStories: value });
       } else {
-        console.log('❌ UNKNOWN FIELD TYPE:', fieldType);
+        debugLogger.error('NODE_UPDATE', 'UNKNOWN FIELD TYPE - NO MAPPING', { 
+          nodeId, 
+          fieldType, 
+          value,
+          availableFieldTypes: nodes.map(n => n.data?.fieldType).filter(Boolean)
+        });
       }
     }
   }, [updateReportData, nodes]);
@@ -137,11 +160,12 @@ export const ReportBuilder: React.FC = () => {
     );
   }, [setNodes]);
 
-  // Update the updateNodeData to use the new function - fix dependency to prevent render loop
+  // Update the updateNodeData to use the new function
   React.useEffect(() => {
-    appLogger.debug('🔧 Setting up node data update functions');
+    debugLogger.debug('NODE_SETUP', 'Setting up node update functions', { nodeCount: nodes.length });
+    
     const combinedUpdateFunction = (nodeId: string, field: string, value: any) => {
-      appLogger.debug('🔄 Combined update function called', { nodeId, field, value });
+      debugLogger.debug('NODE_SETUP', 'Combined update function called', { nodeId, field, value });
       updateNodeData(nodeId, field, value);
       updateNodeInState(nodeId, field, value);
     };
@@ -152,7 +176,9 @@ export const ReportBuilder: React.FC = () => {
         data: { ...node.data, updateNodeData: combinedUpdateFunction }
       }))
     );
-  }, [nodes.length]); // Only re-run when nodes are added/removed
+    
+    debugLogger.success('NODE_SETUP', 'All nodes updated with update functions');
+  }, [nodes.length]);
 
   // Create node types that use updateNodeData from data prop
   const nodeTypes = {
@@ -196,7 +222,7 @@ export const ReportBuilder: React.FC = () => {
         position,
         data: { 
           label: fieldType ? `${fieldType} Field` : `${type} node`,
-          fieldType: fieldType, // Store the field type in node data
+          fieldType: fieldType,
           updateNodeData: (nodeId: string, field: string, value: any) => {
             updateNodeData(nodeId, field, value);
             updateNodeInState(nodeId, field, value);
@@ -204,14 +230,22 @@ export const ReportBuilder: React.FC = () => {
         },
       };
 
-      appLogger.info('🎯 Creating new node', { nodeId: newNode.id, type, fieldType, label: newNode.data.label });
+      debugLogger.success('NODE_CREATE', 'New node created', { 
+        nodeId: newNode.id, 
+        type, 
+        fieldType, 
+        label: newNode.data.label 
+      });
+      
       setNodes((nds) => [...nds, newNode as any]);
     },
     [setNodes, updateNodeData, updateNodeInState]
   );
 
-  // Clear all data function - completely empty everything
+  // Clear all data function
   const clearAllData = () => {
+    debugLogger.warn('CLEAR_DATA', 'Clearing all application data');
+    
     const emptyData = {
       projectName: '',
       scope: '',
@@ -228,6 +262,8 @@ export const ReportBuilder: React.FC = () => {
     setNodes([]);
     setEdges([]);
     setActiveTab('builder');
+    
+    debugLogger.success('CLEAR_DATA', 'All data cleared successfully');
   };
 
   const exportMarkdown = useCallback(() => {
@@ -272,7 +308,8 @@ export const ReportBuilder: React.FC = () => {
           </div>
           
           <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3 flex-shrink-0">
-            <Button 
+            <DebugLogViewer />
+            <Button
               onClick={clearAllData}
               variant="outline"
               className="w-full bg-gradient-to-r from-red-500/10 to-red-500/5 hover:from-red-500/20 hover:to-red-500/10 border-red-500/30 hover:border-red-500/50 text-red-600 hover:text-red-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
@@ -281,11 +318,13 @@ export const ReportBuilder: React.FC = () => {
             </Button>
             <Button 
               onClick={() => {
+                debugLogger.info('PREVIEW_BUTTON', 'Show Preview button clicked');
                 updatePreviewFromBuilder();
                 setTimeout(() => {
+                  debugLogger.info('PREVIEW_BUTTON', 'Switching to preview tab');
                   handleTabChange('preview');
                 }, 100);
-              }} 
+              }}
               variant="outline"
               className="w-full bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 border-primary/30 hover:border-primary/50 text-primary hover:text-primary/90 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
             >
@@ -376,9 +415,8 @@ export const ReportBuilder: React.FC = () => {
             </TabsContent>
             
             <TabsContent value="preview" className="flex-1 m-0 p-0 animate-fade-in">
-              {/* Debug log for rendering */}
               {(() => {
-                console.log('🖼️ Rendering ReportPreview tab with preview data:', previewData);
+                debugLogger.debug('PREVIEW_RENDER', 'Rendering preview tab with data', previewData);
                 return null;
               })()}
               <ReportPreview reportData={previewData} />
