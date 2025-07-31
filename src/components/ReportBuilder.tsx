@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Edge, Node, Background, Controls, MiniMap } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Card } from '@/components/ui/card';
@@ -13,17 +13,6 @@ import { CodeSnippetNode } from './nodes/CodeSnippetNode';
 import { FileUploadNode } from './nodes/FileUploadNode';
 import { SectionHeaderNode } from './nodes/SectionHeaderNode';
 import { initialNodes, initialEdges } from './initialElements';
-
-const createNodeTypes = (updateNodeData: (nodeId: string, field: string, value: any) => void) => ({
-  textInput: (props: any) => {
-    console.log('Rendering TextInputNode with props:', props);
-    return <TextInputNode {...props} updateNodeData={updateNodeData} />;
-  },
-  table: (props: any) => <TableNode {...props} updateNodeData={updateNodeData} />,
-  codeSnippet: (props: any) => <CodeSnippetNode {...props} updateNodeData={updateNodeData} />,
-  fileUpload: (props: any) => <FileUploadNode {...props} updateNodeData={updateNodeData} />,
-  sectionHeader: (props: any) => <SectionHeaderNode {...props} updateNodeData={updateNodeData} />,
-});
 
 interface ReportData {
   projectName: string;
@@ -55,8 +44,7 @@ interface ReportData {
 
 export const ReportBuilder: React.FC = () => {
   const [activeTab, setActiveTab] = useState('builder');
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  
   const [reportData, setReportData] = useState<ReportData>({
     projectName: '',
     scope: '',
@@ -67,6 +55,63 @@ export const ReportBuilder: React.FC = () => {
     codeSnippets: [],
     attachments: [],
   });
+
+  const updateReportData = useCallback((updates: Partial<ReportData>) => {
+    console.log('📊 Updating report data:', updates);
+    setReportData((prev) => ({ ...prev, ...updates }));
+  }, []);
+
+  const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
+    console.log('🔄 Node data update:', nodeId, field, value);
+    
+    // Update report data immediately for live preview
+    if (field === 'value') {
+      if (nodeId === 'project-name' || nodeId.includes('project')) {
+        updateReportData({ projectName: value });
+      } else if (nodeId === 'scope-text' || nodeId.includes('scope')) {
+        updateReportData({ scope: value });
+      } else if (nodeId.includes('baseline')) {
+        updateReportData({ baselines: value });
+      } else if (nodeId.includes('change')) {
+        updateReportData({ changeDescription: value });
+      } else if (nodeId.includes('stories')) {
+        updateReportData({ linkedStories: value });
+      }
+    }
+    
+    // Update node data
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return { ...node, data: { ...node.data, [field]: value } };
+        }
+        return node;
+      })
+    );
+  }, [updateReportData]);
+
+  // Standard nodes initialization
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Update all existing nodes with updateNodeData function
+  React.useEffect(() => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => ({
+        ...node,
+        data: { ...node.data, updateNodeData }
+      }))
+    );
+  }, [updateNodeData, setNodes]);
+
+  // Create node types that use updateNodeData from data prop
+  const nodeTypes = {
+    textInput: TextInputNode,
+    table: TableNode,
+    codeSnippet: CodeSnippetNode,
+    fileUpload: FileUploadNode,
+    sectionHeader: SectionHeaderNode,
+  };
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -98,67 +143,19 @@ export const ReportBuilder: React.FC = () => {
         id: `${type}-${Date.now()}`,
         type,
         position,
-        data: { label: `${type} node` },
+        data: { 
+          label: `${type} node`,
+          updateNodeData 
+        },
       };
 
-      setNodes((nds) => nds.concat(newNode));
+      setNodes((nds) => [...nds, newNode as any]);
     },
-    [setNodes]
+    [setNodes, updateNodeData]
   );
 
-  const updateReportData = useCallback((updates: Partial<ReportData>) => {
-    console.log('Updating report data:', updates);
-    setReportData((prev) => {
-      const newData = { ...prev, ...updates };
-      console.log('New report data:', newData);
-      return newData;
-    });
-  }, []);
-
-  const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
-    console.log('🔄 updateNodeData called:', nodeId, field, value);
-    
-    // Immediately update report data for live preview
-    if (field === 'value') {
-      console.log('📝 Updating report data for node:', nodeId);
-      if (nodeId === 'project-name' || nodeId.includes('project')) {
-        console.log('🏷️ Setting project name:', value);
-        updateReportData({ projectName: value });
-      } else if (nodeId === 'scope-text' || nodeId.includes('scope')) {
-        console.log('🎯 Setting scope:', value);
-        updateReportData({ scope: value });
-      } else if (nodeId.includes('baseline')) {
-        console.log('📋 Setting baselines:', value);
-        updateReportData({ baselines: value });
-      } else if (nodeId.includes('change')) {
-        console.log('🔄 Setting change description:', value);
-        updateReportData({ changeDescription: value });
-      } else if (nodeId.includes('stories')) {
-        console.log('📖 Setting linked stories:', value);
-        updateReportData({ linkedStories: value });
-      }
-    }
-
-    // Also update the node data
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === nodeId) {
-          const updatedData = { ...node.data, [field]: value };
-          return { ...node, data: updatedData };
-        }
-        return node;
-      })
-    );
-  }, [setNodes, updateReportData]);
-
-  // Memoize nodeTypes to prevent React Flow warnings
-  const nodeTypes = useMemo(() => createNodeTypes(updateNodeData), [updateNodeData]);
-
   const exportMarkdown = useCallback(() => {
-    // Generate markdown content
     const markdown = generateMarkdownReport(reportData);
-    
-    // Create and download file
     const blob = new Blob([markdown], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -236,7 +233,7 @@ export const ReportBuilder: React.FC = () => {
                   className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-md transition-all duration-300 font-medium px-6 py-3 rounded-lg"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 616 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                   Live Preview

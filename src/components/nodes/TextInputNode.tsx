@@ -14,12 +14,13 @@ interface TextInputNodeProps {
     value?: string;
     placeholder?: string;
     multiline?: boolean;
+    updateNodeData?: (nodeId: string, field: string, value: any) => void;
   };
   id: string;
-  updateNodeData?: (nodeId: string, field: string, value: any) => void;
 }
 
-export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeData }) => {
+export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
+  const updateNodeData = data.updateNodeData; // Get from data prop
   const [value, setValue] = useState(data.value || '');
   const [placeholder, setPlaceholder] = useState(data.placeholder || 'Enter text...');
   const [multiline, setMultiline] = useState(data.multiline || false);
