@@ -74,33 +74,41 @@ export const ReportBuilder: React.FC = () => {
     });
   }, []); // Remove reportData dependency to prevent infinite loop
 
+  // Standard nodes initialization - moved up to avoid "used before declaration" error
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
     appLogger.debug('🔄 Node data update', { nodeId, field, value });
     
     // Update report data immediately for live preview
     if (field === 'value') {
-      if (nodeId === 'project-name' || nodeId.includes('project')) {
+      // Get the node to check its data.fieldType
+      const node = nodes.find(n => n.id === nodeId);
+      const fieldType = node?.data?.fieldType;
+      
+      appLogger.info('🔍 Field mapping', { nodeId, fieldType, value });
+      
+      if (fieldType === 'projectName' || nodeId === 'project-name' || nodeId.includes('project')) {
         appLogger.info('🏷️ Setting project name', { value });
         updateReportData({ projectName: value });
-      } else if (nodeId === 'scope-text' || nodeId.includes('scope')) {
+      } else if (fieldType === 'scope' || nodeId === 'scope-text' || nodeId.includes('scope')) {
         appLogger.info('🎯 Setting scope', { value });
         updateReportData({ scope: value });
-      } else if (nodeId.includes('baseline')) {
+      } else if (fieldType === 'baselines' || nodeId.includes('baseline')) {
         appLogger.info('📋 Setting baselines', { value });
         updateReportData({ baselines: value });
-      } else if (nodeId.includes('change')) {
+      } else if (fieldType === 'changeDescription' || nodeId.includes('change')) {
         appLogger.info('🔄 Setting change description', { value });
         updateReportData({ changeDescription: value });
-      } else if (nodeId.includes('stories')) {
+      } else if (fieldType === 'linkedStories' || nodeId.includes('stories')) {
         appLogger.info('📖 Setting linked stories', { value });
         updateReportData({ linkedStories: value });
+      } else {
+        appLogger.warn('⚠️ Unknown field type - input not mapped to report data', { nodeId, fieldType, value });
       }
     }
-  }, [updateReportData]);
-
-  // Standard nodes initialization
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  }, [updateReportData, nodes]);
 
   // Update node data in the state
   const updateNodeInState = useCallback((nodeId: string, field: string, value: any) => {
@@ -154,6 +162,7 @@ export const ReportBuilder: React.FC = () => {
 
       const reactFlowBounds = event.currentTarget.getBoundingClientRect();
       const type = event.dataTransfer.getData('application/reactflow');
+      const fieldType = event.dataTransfer.getData('application/fieldtype');
 
       if (typeof type === 'undefined' || !type) {
         return;
@@ -169,7 +178,8 @@ export const ReportBuilder: React.FC = () => {
         type,
         position,
         data: { 
-          label: `${type} node`,
+          label: fieldType ? `${fieldType} Field` : `${type} node`,
+          fieldType: fieldType, // Store the field type in node data
           updateNodeData: (nodeId: string, field: string, value: any) => {
             updateNodeData(nodeId, field, value);
             updateNodeInState(nodeId, field, value);
@@ -177,6 +187,7 @@ export const ReportBuilder: React.FC = () => {
         },
       };
 
+      appLogger.info('🎯 Creating new node', { nodeId: newNode.id, type, fieldType, label: newNode.data.label });
       setNodes((nds) => [...nds, newNode as any]);
     },
     [setNodes, updateNodeData, updateNodeInState]

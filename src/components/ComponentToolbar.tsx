@@ -18,9 +18,38 @@ const components = [
   },
   {
     type: 'textInput',
-    label: 'Text Field',
+    label: 'Project Name',
     icon: Type,
-    description: 'Single or multi-line text input'
+    description: 'Add project title',
+    fieldType: 'projectName'
+  },
+  {
+    type: 'textInput',
+    label: 'Scope Field',
+    icon: Type,
+    description: 'Define scope of work',
+    fieldType: 'scope'
+  },
+  {
+    type: 'textInput',
+    label: 'Baselines',
+    icon: Type,
+    description: 'Add baseline information',
+    fieldType: 'baselines'
+  },
+  {
+    type: 'textInput',
+    label: 'Change Description',
+    icon: Type,
+    description: 'Describe changes',
+    fieldType: 'changeDescription'
+  },
+  {
+    type: 'textInput',
+    label: 'Linked Stories',
+    icon: Type,
+    description: 'Add story references',
+    fieldType: 'linkedStories'
   },
   {
     type: 'table',
@@ -43,8 +72,11 @@ const components = [
 ];
 
 export const ComponentToolbar: React.FC = () => {
-  const onDragStart = (event: React.DragEvent, nodeType: string) => {
+  const onDragStart = (event: React.DragEvent, nodeType: string, fieldType?: string) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
+    if (fieldType) {
+      event.dataTransfer.setData('application/fieldtype', fieldType);
+    }
     event.dataTransfer.effectAllowed = 'move';
   };
 
@@ -61,10 +93,10 @@ export const ComponentToolbar: React.FC = () => {
           const Icon = component.icon;
           return (
             <Card
-              key={component.type}
+              key={`${component.type}-${component.fieldType || component.label}`}
               className="component-card p-4 cursor-grab active:cursor-grabbing transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/10 group bg-gradient-to-r from-card/80 to-accent/20 border-border/50 backdrop-blur-sm animate-fade-in hover:border-primary/30"
               draggable
-              onDragStart={(event) => onDragStart(event, component.type)}
+              onDragStart={(event) => onDragStart(event, component.type, component.fieldType)}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-start gap-3">
