@@ -1,5 +1,4 @@
 import React from 'react';
-import { debugLogger } from './DebugLogger';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ReportData {
@@ -41,41 +40,16 @@ interface ReportPreviewProps {
 }
 
 export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
-  debugLogger.info('PREVIEW_COMPONENT', 'ReportPreview component rendered', reportData);
-  
   // Check if we have any meaningful data
   const hasData = reportData.projectName || 
                  reportData.scope || 
                  reportData.baselines || 
                  reportData.testCases.length > 0 || 
                  reportData.changeDescription || 
-                 reportData.linkedStories.length > 0 ||
+                 reportData.linkedStories.length > 0 || 
                  reportData.codeSnippets.length > 0 || 
                  reportData.attachments.length > 0;
-
-  debugLogger.info('PREVIEW_COMPONENT', `Has meaningful data: ${hasData}`, {
-    projectName: reportData.projectName || '(empty)',
-    scope: reportData.scope || '(empty)',
-    baselines: reportData.baselines || '(empty)',
-    changeDescription: reportData.changeDescription || '(empty)',
-    linkedStories: reportData.linkedStories.length > 0 ? `${reportData.linkedStories.length} stories` : '(empty)',
-    hasData
-  });
-  
-  // Debug: Show what data we actually have
-  React.useEffect(() => {
-    debugLogger.debug('PREVIEW_COMPONENT', 'Data effect triggered', {
-      projectName: reportData.projectName || '(empty)',
-      scope: reportData.scope || '(empty)',
-      hasTestCases: reportData.testCases.length > 0,
-      hasCodeSnippets: reportData.codeSnippets.length > 0,
-      hasData: hasData,
-      timestamp: new Date().toISOString()
-    });
-  }, [reportData, hasData]);
   const renderContent = () => {
-    debugLogger.debug('CONTENT_RENDER', 'Rendering content from data', reportData);
-    
     const sections = [];
 
     // Only add content if it actually exists - no placeholders
@@ -85,7 +59,6 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
           {reportData.projectName}
         </h1>
       );
-      debugLogger.debug('CONTENT_RENDER', 'Added project name to content');
     }
 
     if (reportData.scope) {
@@ -97,7 +70,6 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
           <p className="text-muted-foreground">{reportData.scope}</p>
         </div>
       );
-      debugLogger.debug('CONTENT_RENDER', 'Added scope to content');
     }
 
     if (reportData.baselines) {
@@ -109,7 +81,6 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
           <p className="text-muted-foreground">{reportData.baselines}</p>
         </div>
       );
-      debugLogger.debug('CONTENT_RENDER', 'Added baselines to content');
     }
 
     if (reportData.testCases.length > 0) {
@@ -293,7 +264,6 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
 
     // If there's no content, show empty state
     if (sections.length === 0) {
-      debugLogger.warn('CONTENT_RENDER', 'No content generated - showing empty state');
       return (
         <div className="text-center text-muted-foreground py-12">
           <p className="text-lg font-medium mb-2">Your report preview will appear here</p>
@@ -302,10 +272,6 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
       );
     }
 
-    debugLogger.success('CONTENT_RENDER', 'Content rendered successfully', { 
-      sectionCount: sections.length 
-    });
-    
     return sections;
   };
 

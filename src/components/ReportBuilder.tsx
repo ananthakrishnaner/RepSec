@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react';
-import { debugLogger, DebugLogViewer } from './DebugLogger';
 import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Edge, Node, Background, Controls, MiniMap } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Card } from '@/components/ui/card';
@@ -53,9 +52,7 @@ interface ReportData {
 export const ReportBuilder: React.FC = () => {
   const [activeTab, setActiveTab] = useState('builder');
   
-  // Add tab change logging
   const handleTabChange = (newTab: string) => {
-    debugLogger.info('TAB_CHANGE', `Switching from ${activeTab} to ${newTab}`, { from: activeTab, to: newTab });
     setActiveTab(newTab);
   };
   
@@ -83,32 +80,19 @@ export const ReportBuilder: React.FC = () => {
   });
 
   const updateReportData = useCallback((updates: Partial<ReportData>) => {
-    debugLogger.info('REPORT_DATA', 'updateReportData called', updates);
-    setReportData((prev) => {
-      debugLogger.debug('REPORT_DATA', 'Previous state', prev);
+    setReportData(prev => {
       const newData = { ...prev, ...updates };
-      debugLogger.success('REPORT_DATA', 'New state set', newData);
       return newData;
     });
   }, []);
 
   // Function to collect data from nodes and update preview
   const updatePreviewFromBuilder = () => {
-    debugLogger.info('PREVIEW_UPDATE', 'Show Preview clicked - collecting builder data');
-    debugLogger.debug('PREVIEW_UPDATE', 'Current reportData before copy', reportData);
-    
     const hasAnyData = Object.values(reportData).some(value => 
       Array.isArray(value) ? value.length > 0 : Boolean(value)
     );
     
-    debugLogger.info('PREVIEW_UPDATE', `Builder has data: ${hasAnyData}`, { 
-      projectName: reportData.projectName || '(empty)',
-      scope: reportData.scope || '(empty)',
-      hasContent: hasAnyData 
-    });
-    
     setPreviewData({ ...reportData });
-    debugLogger.success('PREVIEW_UPDATE', 'Preview data state updated', reportData);
   };
 
   // Standard nodes initialization - moved up to avoid "used before declaration" error
@@ -116,49 +100,25 @@ export const ReportBuilder: React.FC = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
-    debugLogger.info('NODE_UPDATE', 'updateNodeData called', { nodeId, field, value });
-    
     if (field === 'value') {
       const node = nodes.find(n => n.id === nodeId);
       const fieldType = node?.data?.fieldType;
       
-      debugLogger.debug('NODE_UPDATE', 'Field mapping lookup', { 
-        nodeId, 
-        fieldType, 
-        nodeFound: !!node,
-        allNodes: nodes.map(n => ({ id: n.id, fieldType: n.data?.fieldType }))
-      });
-      
       if (fieldType === 'projectName') {
-        debugLogger.success('NODE_UPDATE', 'Mapping to PROJECT NAME', { value });
         updateReportData({ projectName: value });
       } else if (fieldType === 'scope') {
-        debugLogger.success('NODE_UPDATE', 'Mapping to SCOPE', { value });
         updateReportData({ scope: value });
       } else if (fieldType === 'baselines') {
-        debugLogger.success('NODE_UPDATE', 'Mapping to BASELINES', { value });
         updateReportData({ baselines: value });
       } else if (fieldType === 'changeDescription') {
-        debugLogger.success('NODE_UPDATE', 'Mapping to CHANGE DESCRIPTION', { value });
         updateReportData({ changeDescription: value });
       } else if (fieldType === 'linkedStories') {
-        debugLogger.success('NODE_UPDATE', 'Mapping to LINKED STORIES', { value });
         updateReportData({ linkedStories: value });
-      } else {
-        debugLogger.error('NODE_UPDATE', 'UNKNOWN FIELD TYPE - NO MAPPING', { 
-          nodeId, 
-          fieldType, 
-          value,
-          availableFieldTypes: nodes.map(n => n.data?.fieldType).filter(Boolean)
-        });
       }
     } else if (field === 'label' || field === 'placeholder') {
       // Store label and placeholder in node data for display purposes
-      debugLogger.info('NODE_UPDATE', `Storing ${field} in node data`, { nodeId, field, value });
-    } else if (field === 'content' || field === 'title' || field === 'language') {
-      // Handle code snippet fields
+    } else if (field === 'content' || field === 'language' || field === 'title') {
       const node = nodes.find(n => n.id === nodeId);
-      debugLogger.info('NODE_UPDATE', 'Processing code snippet field', { nodeId, field, value, nodeType: node?.type });
       
       if (node?.type === 'codeSnippet') {
         setReportData(prev => {
@@ -166,7 +126,6 @@ export const ReportBuilder: React.FC = () => {
           const snippetIndex = existingSnippets.findIndex(s => s.nodeId === nodeId);
           
           if (snippetIndex >= 0) {
-            // Update existing snippet
             const updatedSnippets = [...existingSnippets];
             updatedSnippets[snippetIndex] = {
               ...updatedSnippets[snippetIndex],
@@ -174,43 +133,30 @@ export const ReportBuilder: React.FC = () => {
             };
             return { ...prev, codeSnippets: updatedSnippets };
           } else {
-            // Create new snippet
+            const nodeData = node.data || {};
             const newSnippet = {
               nodeId,
-              title: field === 'title' ? value : 'Code Snippet',
-              content: field === 'content' ? value : '',
-              language: field === 'language' ? value : 'http'
+              title: field === 'title' ? value : (nodeData.title || 'Code Snippet'),
+              content: field === 'content' ? value : (nodeData.content || ''),
+              language: field === 'language' ? value : (nodeData.language || 'javascript')
             };
             return { ...prev, codeSnippets: [...existingSnippets, newSnippet] };
           }
         });
-        debugLogger.success('NODE_UPDATE', 'Code snippet updated', { nodeId, field, value });
       }
     } else if (field === 'testCases') {
-      // Handle table node test cases
-      debugLogger.info('NODE_UPDATE', 'Processing test cases', { nodeId, field, value });
       setReportData(prev => ({ ...prev, testCases: value }));
-      debugLogger.success('NODE_UPDATE', 'Test cases updated', { nodeId, count: value?.length });
     } else if (field === 'changeDescription') {
-      // Handle change description
-      debugLogger.info('NODE_UPDATE', 'Processing change description', { nodeId, field, value });
       setReportData(prev => ({ ...prev, changeDescription: value }));
-      debugLogger.success('NODE_UPDATE', 'Change description updated', { nodeId });
     } else if (field === 'linkedStories') {
-      // Handle linked stories
-      debugLogger.info('NODE_UPDATE', 'Processing linked stories', { nodeId, field, value });
       setReportData(prev => ({ ...prev, linkedStories: value }));
-      debugLogger.success('NODE_UPDATE', 'Linked stories updated', { nodeId, count: value?.length });
     } else if (field === 'files') {
-      // Handle file upload attachments
-      debugLogger.info('NODE_UPDATE', 'Processing file attachments', { nodeId, field, value });
-      const attachments = value?.map((file: any) => ({
-        name: file.name,
-        url: file.url,
-        type: file.type
-      })) || [];
+      const attachments = value.map((file: any) => ({
+        name: file.name || 'Unknown File',
+        url: file.url || '#',
+        type: file.type || 'Unknown'
+      }));
       setReportData(prev => ({ ...prev, attachments }));
-      debugLogger.success('NODE_UPDATE', 'Attachments updated', { nodeId, count: attachments.length });
     }
   }, [updateReportData, nodes]);
 
@@ -228,10 +174,7 @@ export const ReportBuilder: React.FC = () => {
 
   // Update the updateNodeData to use the new function
   React.useEffect(() => {
-    debugLogger.debug('NODE_SETUP', 'Setting up node update functions', { nodeCount: nodes.length });
-    
     const combinedUpdateFunction = (nodeId: string, field: string, value: any) => {
-      debugLogger.debug('NODE_SETUP', 'Combined update function called', { nodeId, field, value });
       updateNodeData(nodeId, field, value);
       updateNodeInState(nodeId, field, value);
     };
@@ -242,8 +185,6 @@ export const ReportBuilder: React.FC = () => {
         data: { ...node.data, updateNodeData: combinedUpdateFunction }
       }))
     );
-    
-    debugLogger.success('NODE_SETUP', 'All nodes updated with update functions');
   }, [nodes.length]);
 
   // Create node types that use updateNodeData from data prop
@@ -283,37 +224,33 @@ export const ReportBuilder: React.FC = () => {
         y: event.clientY - reactFlowBounds.top,
       };
 
+      const combinedUpdateFunction = (nodeId: string, field: string, value: any) => {
+        updateNodeData(nodeId, field, value);
+        updateNodeInState(nodeId, field, value);
+      };
+
       const newNode: Node = {
-        id: `${type}-${Date.now()}`,
+        id: getId(),
         type,
         position,
-        data: { 
-          label: fieldType ? `${fieldType} Field` : `${type} node`,
-          fieldType: fieldType,
-          updateNodeData: (nodeId: string, field: string, value: any) => {
-            updateNodeData(nodeId, field, value);
-            updateNodeInState(nodeId, field, value);
-          }
+        data: fieldType ? { 
+          label: `${type} Node`,
+          placeholder: `Enter ${fieldType}...`,
+          fieldType,
+          updateNodeData: combinedUpdateFunction
+        } : { 
+          label: `${type} Node`,
+          updateNodeData: combinedUpdateFunction
         },
       };
 
-      debugLogger.success('NODE_CREATE', 'New node created', { 
-        nodeId: newNode.id, 
-        type, 
-        fieldType, 
-        label: newNode.data.label 
-      });
-      
-      setNodes((nds) => [...nds, newNode as any]);
+      setNodes((nds) => nds.concat(newNode));
     },
     [setNodes, updateNodeData, updateNodeInState]
   );
 
-  // Clear all data function
   const clearAllData = () => {
-    debugLogger.warn('CLEAR_DATA', 'Clearing all application data');
-    
-    const emptyData = {
+    setReportData({
       projectName: '',
       scope: '',
       baselines: '',
@@ -321,18 +258,26 @@ export const ReportBuilder: React.FC = () => {
       changeDescription: '',
       linkedStories: [],
       codeSnippets: [],
-      attachments: [],
-    };
+      attachments: []
+    });
     
-    setReportData(emptyData);
-    setPreviewData(emptyData);
-    setNodes([]);
-    setEdges([]);
-    setActiveTab('builder');
+    setPreviewData({
+      projectName: '',
+      scope: '',
+      baselines: '',
+      testCases: [],
+      changeDescription: '',
+      linkedStories: [],
+      codeSnippets: [],
+      attachments: []
+    });
     
-    debugLogger.success('CLEAR_DATA', 'All data cleared successfully');
+    setNodes(initialNodes);
+    setEdges(initialEdges);
   };
 
+  let id = 0;
+  const getId = () => `dndnode_${id++}`;
 
   return (
     <div className="h-screen bg-gradient-to-br from-background via-background to-card overflow-hidden">
@@ -363,7 +308,6 @@ export const ReportBuilder: React.FC = () => {
           </div>
           
           <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3 flex-shrink-0">
-            <DebugLogViewer />
             <Button
               onClick={clearAllData}
               variant="outline"
@@ -373,15 +317,10 @@ export const ReportBuilder: React.FC = () => {
             </Button>
             <Button 
               onClick={() => {
-                debugLogger.info('PREVIEW_BUTTON', 'Show Preview button clicked');
                 updatePreviewFromBuilder();
-                setTimeout(() => {
-                  debugLogger.info('PREVIEW_BUTTON', 'Switching to preview tab');
-                  handleTabChange('preview');
-                }, 100);
+                setActiveTab('preview');
               }}
-              variant="outline"
-              className="w-full bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 border-primary/30 hover:border-primary/50 text-primary hover:text-primary/90 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 font-semibold"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -411,7 +350,7 @@ export const ReportBuilder: React.FC = () => {
                   className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-md transition-all duration-300 font-medium px-6 py-3 rounded-lg"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 616 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                   Live Preview
@@ -451,11 +390,7 @@ export const ReportBuilder: React.FC = () => {
               </div>
             </TabsContent>
             
-            <TabsContent value="preview" className="flex-1 m-0 p-0 animate-fade-in">
-              {(() => {
-                debugLogger.debug('PREVIEW_RENDER', 'Rendering preview tab with data', previewData);
-                return null;
-              })()}
+            <TabsContent value="preview" className="space-y-0 mt-0 h-full">
               <ReportPreview reportData={previewData} />
             </TabsContent>
 
