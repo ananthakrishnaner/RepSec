@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ReportPreview } from './ReportPreview';
+import { useToast } from '@/hooks/use-toast';
+import { Download, Upload } from 'lucide-react';
 
 import { ComponentToolbar } from './ComponentToolbar';
 import { TextInputNode } from './nodes/TextInputNode';
@@ -281,6 +283,94 @@ export const ReportBuilder: React.FC = () => {
     id = 0;
   };
 
+  // Export/Import functionality
+  const { toast } = useToast();
+
+  const exportDesign = () => {
+    try {
+      const exportData = {
+        version: "1.0.0",
+        timestamp: new Date().toISOString(),
+        appInfo: "ReportBuilder",
+        reportData: reportData,
+        flowData: {
+          nodes: nodes,
+          edges: edges
+        },
+        nodeStates: {} // Additional node-specific states if needed
+      };
+
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `security-report-design-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Design exported successfully",
+        description: "Your report design has been downloaded as a JSON file.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Failed to export design. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const importDesign = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedData = JSON.parse(e.target?.result as string);
+          
+          // Validate the imported data structure
+          if (!importedData.version || !importedData.reportData || !importedData.flowData) {
+            throw new Error('Invalid file structure');
+          }
+
+          // Confirm before replacing current data
+          if (window.confirm('This will replace your current design. Are you sure you want to continue?')) {
+            // Restore report data
+            setReportData(importedData.reportData);
+            setPreviewData(importedData.reportData);
+            
+            // Restore React Flow nodes and edges
+            setNodes(importedData.flowData.nodes || []);
+            setEdges(importedData.flowData.edges || []);
+
+            toast({
+              title: "Design imported successfully",
+              description: `Design from ${importedData.timestamp ? new Date(importedData.timestamp).toLocaleDateString() : 'unknown date'} has been loaded.`,
+            });
+          }
+        } catch (error) {
+          toast({
+            title: "Import failed",
+            description: "Invalid or corrupted JSON file. Please check the file and try again.",
+            variant: "destructive",
+          });
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
   let id = 0;
   const getId = () => `dndnode_${id++}`;
 
@@ -313,6 +403,24 @@ export const ReportBuilder: React.FC = () => {
           </div>
           
           <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3 flex-shrink-0">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={exportDesign}
+                variant="outline"
+                className="bg-gradient-to-r from-green-500/10 to-green-500/5 hover:from-green-500/20 hover:to-green-500/10 border-green-500/30 hover:border-green-500/50 text-green-600 hover:text-green-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Export
+              </Button>
+              <Button
+                onClick={importDesign}
+                variant="outline"
+                className="bg-gradient-to-r from-blue-500/10 to-blue-500/5 hover:from-blue-500/20 hover:to-blue-500/10 border-blue-500/30 hover:border-blue-500/50 text-blue-600 hover:text-blue-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
+              >
+                <Upload className="w-4 h-4 mr-1" />
+                Import
+              </Button>
+            </div>
             <Button
               onClick={clearAllData}
               variant="outline"
