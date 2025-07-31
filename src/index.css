@@ -6,7 +6,204 @@
 @import '@xyflow/react/dist/style.css';
 
 /* Import highlight.js styles for code syntax highlighting */
-@import 'highlight.js/styles/github.css';
+@import 'highlight.js/styles/github-dark.css';
+
+@layer base {
+  :root {
+    /* Modern color palette */
+    --background: 215 28% 17%;
+    --foreground: 213 31% 91%;
+    --card: 217 33% 17%;
+    --card-foreground: 213 31% 91%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 213 31% 91%;
+    --primary: 142 86% 28%;
+    --primary-foreground: 356 29% 98%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 213 31% 91%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 21%;
+    --accent-foreground: 213 31% 91%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 213 31% 91%;
+    --border: 217 33% 21%;
+    --input: 217 33% 21%;
+    --ring: 142 86% 28%;
+    --radius: 0.75rem;
+    
+    /* Modern gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(142 86% 28%), hsl(142 86% 35%));
+    --gradient-secondary: linear-gradient(135deg, hsl(217 33% 17%), hsl(217 33% 21%));
+    --gradient-accent: linear-gradient(135deg, hsl(217 33% 21%), hsl(217 33% 25%));
+    
+    /* Modern shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 20px hsl(142 86% 28% / 0.3);
+  }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 142 86% 28%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 142 86% 28%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* React Flow Customizations */
+.react-flow {
+  background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--card)));
+}
+
+.react-flow__node {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid hsl(var(--border));
+  transition: all 0.2s ease-in-out;
+}
+
+.react-flow__node:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.react-flow__node.selected {
+  box-shadow: var(--shadow-glow);
+  border-color: hsl(var(--primary));
+}
+
+.react-flow__handle {
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--background));
+  width: 12px;
+  height: 12px;
+  transition: all 0.2s ease-in-out;
+}
+
+.react-flow__handle:hover {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-glow);
+}
+
+.react-flow__edge-path {
+  stroke: hsl(var(--primary));
+  stroke-width: 2;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: hsl(var(--primary));
+  stroke-width: 3;
+}
+
+/* Drag and Drop Styling */
+.dragging {
+  transform: rotate(5deg);
+  box-shadow: var(--shadow-lg);
+  opacity: 0.8;
+}
+
+/* Component Cards */
+.component-card {
+  @apply transition-all duration-200 ease-in-out;
+  @apply hover:shadow-lg hover:-translate-y-1;
+  @apply border border-border bg-gradient-to-br from-card to-accent;
+}
+
+.component-card:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Toolbar Improvements */
+.toolbar-section {
+  @apply space-y-3 p-4;
+  background: linear-gradient(135deg, hsl(var(--card)), hsl(var(--accent)));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+/* Modern Input Styling */
+.modern-input {
+  @apply transition-all duration-200;
+  @apply focus:ring-2 focus:ring-primary/20 focus:border-primary;
+  @apply hover:border-primary/50;
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Glassmorphism effect */
+.glass {
+  backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(17, 25, 40, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+/* Status indicators */
+.status-indicator {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.status-exploited {
+  @apply bg-destructive/20 text-destructive border border-destructive/30;
+}
+
+.status-safe {
+  @apply bg-primary/20 text-primary border border-primary/30;
+}
+
+.status-pending {
+  @apply bg-yellow-500/20 text-yellow-500 border border-yellow-500/30;
+}
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.

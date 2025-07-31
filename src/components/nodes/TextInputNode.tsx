@@ -24,45 +24,49 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
   const [label, setLabel] = useState(data.label || 'Text Input');
 
   return (
-    <Card className="w-80 p-4 bg-background border-border">
-      <Handle type="target" position={Position.Top} className="w-2 h-2" />
+    <Card className="w-80 p-4 bg-gradient-to-br from-card to-accent/30 border-border shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm">
+      <Handle type="target" position={Position.Top} className="w-3 h-3 border-2 border-card" />
       
-      <div className="flex items-center gap-2 mb-3">
-        <Type className="h-4 w-4 text-primary" />
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <Type className="h-4 w-4 text-primary" />
+        </div>
         <Input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          className="text-sm font-medium border-none p-0 h-auto"
+          className="text-sm font-semibold border-none p-0 h-auto bg-transparent focus:ring-0 focus:border-transparent"
           placeholder="Field label"
         />
       </div>
 
-      <div className="space-y-3">
-        <div>
-          <Label htmlFor={`${id}-placeholder`} className="text-xs">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-placeholder`} className="text-xs font-medium text-muted-foreground">
             Placeholder Text
           </Label>
           <Input
             id={`${id}-placeholder`}
             value={placeholder}
             onChange={(e) => setPlaceholder(e.target.value)}
-            className="text-xs"
+            className="modern-input text-xs"
+            placeholder="Enter placeholder..."
           />
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+          <Label htmlFor={`${id}-multiline`} className="text-xs font-medium">
+            Multi-line text
+          </Label>
           <Switch
             id={`${id}-multiline`}
             checked={multiline}
             onCheckedChange={setMultiline}
+            className="data-[state=checked]:bg-primary"
           />
-          <Label htmlFor={`${id}-multiline`} className="text-xs">
-            Multi-line text
-          </Label>
         </div>
 
-        <div>
-          <Label htmlFor={`${id}-value`} className="text-xs">
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-value`} className="text-xs font-medium text-muted-foreground">
             Content
           </Label>
           {multiline ? (
@@ -71,7 +75,7 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder={placeholder}
-              className="min-h-20"
+              className="modern-input min-h-20 resize-none"
             />
           ) : (
             <Input
@@ -79,12 +83,13 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder={placeholder}
+              className="modern-input"
             />
           )}
         </div>
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="w-2 h-2" />
+      <Handle type="source" position={Position.Bottom} className="w-3 h-3 border-2 border-card" />
     </Card>
   );
 });

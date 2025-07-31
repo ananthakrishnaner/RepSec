@@ -122,19 +122,24 @@ export const ReportBuilder: React.FC = () => {
   }, [reportData]);
 
   return (
-    <div className="h-screen bg-background">
+    <div className="h-screen bg-gradient-to-br from-background via-background to-card overflow-hidden">
       <div className="flex h-full">
         {/* Sidebar with component toolbar */}
-        <div className="w-80 border-r border-border bg-card">
-          <div className="p-4 border-b border-border">
-            <h2 className="text-lg font-semibold">Security Report Builder</h2>
+        <div className="w-80 border-r border-border bg-gradient-to-b from-card to-accent/50 backdrop-blur-sm">
+          <div className="p-4 border-b border-border bg-gradient-to-r from-primary/10 to-primary/5">
+            <h2 className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              Security Report Builder
+            </h2>
             <p className="text-sm text-muted-foreground">
               Drag components to build your report
             </p>
           </div>
           <ComponentToolbar />
           <div className="p-4 border-t border-border">
-            <Button onClick={exportMarkdown} className="w-full">
+            <Button 
+              onClick={exportMarkdown} 
+              className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all duration-200"
+            >
               Export Markdown
             </Button>
           </div>
@@ -143,15 +148,25 @@ export const ReportBuilder: React.FC = () => {
         {/* Main content area */}
         <div className="flex-1 flex flex-col">
           <Tabs defaultValue="builder" className="h-full">
-            <div className="border-b border-border">
-              <TabsList className="h-12 px-4">
-                <TabsTrigger value="builder">Report Builder</TabsTrigger>
-                <TabsTrigger value="preview">Live Preview</TabsTrigger>
+            <div className="border-b border-border bg-gradient-to-r from-card to-accent/30">
+              <TabsList className="h-12 px-4 bg-transparent">
+                <TabsTrigger 
+                  value="builder" 
+                  className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-200"
+                >
+                  Report Builder
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="preview"
+                  className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-200"
+                >
+                  Live Preview
+                </TabsTrigger>
               </TabsList>
             </div>
             
             <TabsContent value="builder" className="flex-1 m-0 p-0">
-              <div className="h-full">
+              <div className="h-full w-full" style={{ height: 'calc(100vh - 8rem)' }}>
                 <ReactFlow
                   nodes={nodes}
                   edges={edges}
@@ -162,11 +177,16 @@ export const ReportBuilder: React.FC = () => {
                   onDragOver={onDragOver}
                   nodeTypes={nodeTypes}
                   fitView
-                  className="bg-background"
+                  className="bg-gradient-to-br from-background/50 to-card/50"
+                  style={{ width: '100%', height: '100%' }}
                 >
-                  <Background />
-                  <Controls />
-                  <MiniMap />
+                  <Background gap={20} size={1} color="hsl(var(--border))" />
+                  <Controls className="bg-card/80 backdrop-blur-sm border border-border" />
+                  <MiniMap 
+                    className="bg-card/80 backdrop-blur-sm border border-border" 
+                    nodeColor="hsl(var(--primary))"
+                    maskColor="hsl(var(--background) / 0.8)"
+                  />
                 </ReactFlow>
               </div>
             </TabsContent>
