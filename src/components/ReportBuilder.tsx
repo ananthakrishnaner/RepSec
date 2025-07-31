@@ -64,6 +64,18 @@ export const ReportBuilder: React.FC = () => {
     attachments: [],
   });
 
+  // Separate state for preview data - only updates when "Show Preview" is clicked
+  const [previewData, setPreviewData] = useState<ReportData>({
+    projectName: '',
+    scope: '',
+    baselines: '',
+    testCases: [],
+    changeDescription: '',
+    linkedStories: '',
+    codeSnippets: [],
+    attachments: [],
+  });
+
   const updateReportData = useCallback((updates: Partial<ReportData>) => {
     appLogger.info('📊 updateReportData called', updates);
     setReportData((prev) => {
@@ -73,6 +85,18 @@ export const ReportBuilder: React.FC = () => {
       return newData;
     });
   }, []); // Remove reportData dependency to prevent infinite loop
+
+  // Function to collect data from nodes and update preview
+  const updatePreviewFromBuilder = () => {
+    appLogger.info('🖼️ Updating preview from builder nodes');
+    
+    // Collect data from current nodes in the builder
+    const currentData = { ...reportData };
+    
+    // Update preview data
+    setPreviewData(currentData);
+    appLogger.info('📊 Preview data updated', currentData);
+  };
 
   // Standard nodes initialization - moved up to avoid "used before declaration" error
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -196,7 +220,7 @@ export const ReportBuilder: React.FC = () => {
   // Clear all data function
   const clearAllData = () => {
     appLogger.info('🧹 Clearing all report data');
-    setReportData({
+    const emptyData = {
       projectName: '',
       scope: '',
       baselines: '',
@@ -205,7 +229,10 @@ export const ReportBuilder: React.FC = () => {
       linkedStories: '',
       codeSnippets: [],
       attachments: [],
-    });
+    };
+    
+    setReportData(emptyData);
+    setPreviewData(emptyData); // Clear preview too
     // Also clear all nodes except initial ones
     setNodes(initialNodes);
     setEdges(initialEdges);
@@ -263,7 +290,10 @@ export const ReportBuilder: React.FC = () => {
               🧹 Clear All Data
             </Button>
             <Button 
-              onClick={() => handleTabChange('preview')} 
+              onClick={() => {
+                updatePreviewFromBuilder();
+                handleTabChange('preview');
+              }}
               variant="outline"
               className="w-full bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 border-primary/30 hover:border-primary/50 text-primary hover:text-primary/90 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
             >
@@ -356,14 +386,14 @@ export const ReportBuilder: React.FC = () => {
             <TabsContent value="preview" className="flex-1 m-0 p-0 animate-fade-in">
               {/* Debug log for rendering */}
               {(() => {
-                console.log('🖼️ Rendering ReportPreview tab with data:', reportData);
+                console.log('🖼️ Rendering ReportPreview tab with preview data:', previewData);
                 return null;
               })()}
-              <ReportPreview reportData={reportData} />
+              <ReportPreview reportData={previewData} />
             </TabsContent>
 
             <TabsContent value="markdown" className="flex-1 m-0 p-0 animate-fade-in">
-              <MarkdownEditor reportData={reportData} onUpdateMarkdown={setReportData} />
+              <MarkdownEditor reportData={previewData} onUpdateMarkdown={setPreviewData} />
             </TabsContent>
           </Tabs>
         </div>
