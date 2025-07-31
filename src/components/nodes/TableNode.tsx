@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useRef } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Table, Plus, Minus } from 'lucide-react';
+import { Table, Plus, Minus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface TestCase {
   id: string;
@@ -30,6 +30,7 @@ interface TableNodeProps {
 
 export const TableNode = memo<TableNodeProps>(({ data, id }) => {
   const updateNodeData = data.updateNodeData;
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [testCases, setTestCases] = useState<TestCase[]>(data.testCases || [
     {
       id: '',
@@ -71,6 +72,31 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
     updateNodeData?.(id, 'testCases', updated);
   };
 
+  // Scroll functions for arrow navigation
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+    }
+  };
+
+  const scrollUp = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ top: -150, behavior: 'smooth' });
+    }
+  };
+
+  const scrollDown = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ top: 150, behavior: 'smooth' });
+    }
+  };
+
   return (
     <Card className="w-[800px] p-4 bg-background border-border">
       <Handle type="target" position={Position.Top} className="w-2 h-2" />
@@ -80,22 +106,46 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
           <Table className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">Test Cases Table</span>
         </div>
-        <Button onClick={addTestCase} size="sm" variant="outline">
-          <Plus className="h-3 w-3 mr-1" />
-          Add Row
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={addTestCase} size="sm" variant="outline">
+            <Plus className="h-3 w-3 mr-1" />
+            Add Row
+          </Button>
+        </div>
+      </div>
+
+      {/* Navigation Controls */}
+      <div className="flex items-center justify-center gap-2 mb-3">
+        <div className="flex items-center gap-1">
+          <Button onClick={scrollUp} size="sm" variant="outline" className="h-8 w-8 p-0">
+            <ChevronUp className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button onClick={scrollLeft} size="sm" variant="outline" className="h-8 w-8 p-0">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-xs text-muted-foreground px-2">Navigate</span>
+          <Button onClick={scrollRight} size="sm" variant="outline" className="h-8 w-8 p-0">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button onClick={scrollDown} size="sm" variant="outline" className="h-8 w-8 p-0">
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <div 
+        ref={scrollRef}
         style={{
-          height: '400px',
-          width: '750px',
-          border: '3px solid #3b82f6',
+          height: '350px',
+          width: '100%',
+          border: '2px solid #3b82f6',
           borderRadius: '8px',
           backgroundColor: '#f8fafc',
-          overflow: 'scroll',
-          overflowX: 'scroll',
-          overflowY: 'scroll'
+          overflow: 'auto'
         }}
       >
         <div style={{ minWidth: '1500px', minHeight: '600px', padding: '16px' }}>
