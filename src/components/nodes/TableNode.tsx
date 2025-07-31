@@ -87,7 +87,13 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
       </div>
 
       <div 
-        className="table-scroll-container h-96 border-2 border-primary/20 rounded-md bg-muted/5"
+        className="h-96 border-4 border-blue-500/30 rounded-md bg-slate-50 dark:bg-slate-900"
+        id="test-case-scroll-container"
+        style={{
+          overflow: 'auto',
+          scrollbarWidth: 'auto',
+          scrollbarColor: 'rgb(59, 130, 246) rgb(226, 232, 240)'
+        }}
       >
         <div className="space-y-4 p-4 min-w-[1400px]">
           {testCases.map((testCase, index) => (
