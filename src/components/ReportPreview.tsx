@@ -50,44 +50,85 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
     });
   }, [reportData]);
   const generateMarkdown = (): string => {
-    return `# ${reportData.projectName || 'Security Testing Report'}
+    // Check if we have any meaningful data
+    const hasData = reportData.projectName || 
+                   reportData.scope || 
+                   reportData.baselines || 
+                   reportData.testCases.length > 0 || 
+                   reportData.changeDescription || 
+                   reportData.linkedStories || 
+                   reportData.codeSnippets.length > 0 || 
+                   reportData.attachments.length > 0;
 
-## Scope of Work
-${reportData.scope || 'No scope defined'}
+    if (!hasData) {
+      return `# Report Preview
 
-## Baselines for Review
-${reportData.baselines || 'No baselines defined'}
+*Start building your security report by dragging components from the sidebar.*
 
-## Test Cases
+**Available Components:**
+- Section Header: Add titles and headings
+- Text Field: Add descriptions and content
+- Test Cases Table: Add structured test data
+- Code Snippet: Add HTTP requests/responses
+- File Upload: Add attachments and evidence
 
-| ID | Test Case | Category | Exploited | URL Reference | Evidence Path | Remediation Status | Tester Name |
-|----|-----------|----------|-----------|---------------|---------------|-------------------|-------------|
-${reportData.testCases.map(tc => 
-  `| ${tc.id} | ${tc.testCase} | ${tc.category} | ${tc.exploited} | ${tc.url} | ${tc.evidence} | ${tc.remediation} | ${tc.tester} |`
-).join('\n')}
+Your report content will appear here as you add and fill in components.`;
+    }
 
-## Change Description & Linked Stories
-${reportData.changeDescription || 'No changes described'}
+    let markdown = '';
 
-**Linked Stories:** ${reportData.linkedStories || 'None'}
+    // Only add title if project name exists
+    if (reportData.projectName) {
+      markdown += `# ${reportData.projectName}\n\n`;
+    }
 
-## Code Snippets
+    // Only add scope section if scope exists
+    if (reportData.scope) {
+      markdown += `## Scope of Work\n${reportData.scope}\n\n`;
+    }
 
-${reportData.codeSnippets.map(snippet => `
-### ${snippet.title}
+    // Only add baselines section if baselines exist
+    if (reportData.baselines) {
+      markdown += `## Baselines for Review\n${reportData.baselines}\n\n`;
+    }
 
-\`\`\`${snippet.language}
-${snippet.content}
-\`\`\`
-`).join('\n')}
+    // Only add test cases section if test cases exist
+    if (reportData.testCases.length > 0) {
+      markdown += `## Test Cases\n\n| ID | Test Case | Category | Exploited | URL Reference | Evidence Path | Remediation Status | Tester Name |\n|----|-----------|----------|-----------|---------------|---------------|-------------------|-------------|\n`;
+      markdown += reportData.testCases.map(tc => 
+        `| ${tc.id} | ${tc.testCase} | ${tc.category} | ${tc.exploited} | ${tc.url} | ${tc.evidence} | ${tc.remediation} | ${tc.tester} |`
+      ).join('\n') + '\n\n';
+    }
 
-## Attachments
+    // Only add change description if it exists
+    if (reportData.changeDescription || reportData.linkedStories) {
+      markdown += `## Change Description & Linked Stories\n`;
+      if (reportData.changeDescription) {
+        markdown += `${reportData.changeDescription}\n\n`;
+      }
+      if (reportData.linkedStories) {
+        markdown += `**Linked Stories:** ${reportData.linkedStories}\n\n`;
+      }
+    }
 
-${reportData.attachments.map(att => `- [${att.name}](${att.url}) (${att.type})`).join('\n')}
+    // Only add code snippets section if snippets exist
+    if (reportData.codeSnippets.length > 0) {
+      markdown += `## Code Snippets\n\n`;
+      markdown += reportData.codeSnippets.map(snippet => `### ${snippet.title}\n\n\`\`\`${snippet.language}\n${snippet.content}\n\`\`\`\n`).join('\n') + '\n';
+    }
 
----
-*Report generated on ${new Date().toLocaleDateString()}*
-`;
+    // Only add attachments section if attachments exist
+    if (reportData.attachments.length > 0) {
+      markdown += `## Attachments\n\n`;
+      markdown += reportData.attachments.map(att => `- [${att.name}](${att.url}) (${att.type})`).join('\n') + '\n\n';
+    }
+
+    // Add timestamp only if we have actual content
+    if (markdown && markdown !== '') {
+      markdown += `---\n*Report generated on ${new Date().toLocaleDateString()}*\n`;
+    }
+
+    return markdown;
   };
 
   return (
