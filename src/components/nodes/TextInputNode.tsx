@@ -39,8 +39,8 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
 
   // Test function to bypass React Flow
   const testUpdate = () => {
-    console.log('🧪 TEST UPDATE BUTTON CLICKED');
-    const testValue = 'Test value ' + Date.now();
+    console.log('🧪 TEST UPDATE BUTTON CLICKED for node:', id);
+    const testValue = 'Test content from ' + id + ' at ' + new Date().toLocaleTimeString();
     handleValueChange(testValue);
   };
 

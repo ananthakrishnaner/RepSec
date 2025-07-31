@@ -42,11 +42,12 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
   
   // Debug: Show what data we actually have
   React.useEffect(() => {
-    console.log('ReportPreview data changed:', {
-      projectName: reportData.projectName,
-      scope: reportData.scope,
+    console.log('🖼️ ReportPreview data changed:', {
+      projectName: reportData.projectName || '(empty)',
+      scope: reportData.scope || '(empty)',
       hasTestCases: reportData.testCases.length > 0,
-      hasCodeSnippets: reportData.codeSnippets.length > 0
+      hasCodeSnippets: reportData.codeSnippets.length > 0,
+      timestamp: new Date().toISOString()
     });
   }, [reportData]);
   const generateMarkdown = (): string => {

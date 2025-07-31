@@ -45,6 +45,13 @@ interface ReportData {
 export const ReportBuilder: React.FC = () => {
   const [activeTab, setActiveTab] = useState('builder');
   
+  // Add tab change logging
+  const handleTabChange = (newTab: string) => {
+    console.log('🔄 Tab changing from', activeTab, 'to', newTab);
+    console.log('📊 Current report data before tab change:', reportData);
+    setActiveTab(newTab);
+  };
+  
   const [reportData, setReportData] = useState<ReportData>({
     projectName: '',
     scope: '',
@@ -58,7 +65,11 @@ export const ReportBuilder: React.FC = () => {
 
   const updateReportData = useCallback((updates: Partial<ReportData>) => {
     console.log('📊 Updating report data:', updates);
-    setReportData((prev) => ({ ...prev, ...updates }));
+    setReportData((prev) => {
+      const newData = { ...prev, ...updates };
+      console.log('📋 New report data state:', newData);
+      return newData;
+    });
   }, []);
 
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
@@ -67,19 +78,30 @@ export const ReportBuilder: React.FC = () => {
     // Update report data immediately for live preview
     if (field === 'value') {
       if (nodeId === 'project-name' || nodeId.includes('project')) {
+        console.log('🏷️ Setting project name:', value);
         updateReportData({ projectName: value });
       } else if (nodeId === 'scope-text' || nodeId.includes('scope')) {
+        console.log('🎯 Setting scope:', value);
         updateReportData({ scope: value });
       } else if (nodeId.includes('baseline')) {
+        console.log('📋 Setting baselines:', value);
         updateReportData({ baselines: value });
       } else if (nodeId.includes('change')) {
+        console.log('🔄 Setting change description:', value);
         updateReportData({ changeDescription: value });
       } else if (nodeId.includes('stories')) {
+        console.log('📖 Setting linked stories:', value);
         updateReportData({ linkedStories: value });
       }
     }
-    
-    // Update node data
+  }, [updateReportData]);
+
+  // Standard nodes initialization
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Update node data in the state
+  const updateNodeInState = useCallback((nodeId: string, field: string, value: any) => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
@@ -88,21 +110,22 @@ export const ReportBuilder: React.FC = () => {
         return node;
       })
     );
-  }, [updateReportData]);
+  }, [setNodes]);
 
-  // Standard nodes initialization
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
-  // Update all existing nodes with updateNodeData function
+  // Update the updateNodeData to use the new function
   React.useEffect(() => {
+    const combinedUpdateFunction = (nodeId: string, field: string, value: any) => {
+      updateNodeData(nodeId, field, value);
+      updateNodeInState(nodeId, field, value);
+    };
+
     setNodes((currentNodes) =>
       currentNodes.map((node) => ({
         ...node,
-        data: { ...node.data, updateNodeData }
+        data: { ...node.data, updateNodeData: combinedUpdateFunction }
       }))
     );
-  }, [updateNodeData, setNodes]);
+  }, [updateNodeData, updateNodeInState, setNodes]);
 
   // Create node types that use updateNodeData from data prop
   const nodeTypes = {
@@ -145,13 +168,16 @@ export const ReportBuilder: React.FC = () => {
         position,
         data: { 
           label: `${type} node`,
-          updateNodeData 
+          updateNodeData: (nodeId: string, field: string, value: any) => {
+            updateNodeData(nodeId, field, value);
+            updateNodeInState(nodeId, field, value);
+          }
         },
       };
 
       setNodes((nds) => [...nds, newNode as any]);
     },
-    [setNodes, updateNodeData]
+    [setNodes, updateNodeData, updateNodeInState]
   );
 
   const exportMarkdown = useCallback(() => {
@@ -192,7 +218,7 @@ export const ReportBuilder: React.FC = () => {
           <ComponentToolbar />
           <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3">
             <Button 
-              onClick={() => setActiveTab('preview')} 
+              onClick={() => handleTabChange('preview')} 
               variant="outline"
               className="w-full bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 border-primary/30 hover:border-primary/50 text-primary hover:text-primary/90 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
             >
@@ -216,7 +242,7 @@ export const ReportBuilder: React.FC = () => {
 
         {/* Main content area */}
         <div className="flex-1 flex flex-col bg-gradient-to-br from-background via-background/95 to-card/20">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full flex flex-col">
             <div className="border-b border-border/30 bg-gradient-to-r from-background/90 via-card/30 to-background/90 backdrop-blur-sm">
               <TabsList className="h-14 px-6 bg-transparent gap-1">
                 <TabsTrigger 
