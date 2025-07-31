@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Table, Plus, Minus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { Table, Plus, Minus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Upload, Image } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface TestCase {
   id: string;
@@ -31,6 +32,8 @@ interface TableNodeProps {
 export const TableNode = memo<TableNodeProps>(({ data, id }) => {
   const updateNodeData = data.updateNodeData;
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
+  const { toast } = useToast();
   const [testCases, setTestCases] = useState<TestCase[]>(data.testCases || [
     {
       id: '',
@@ -88,6 +91,59 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
   const scrollUp = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollBy({ top: -150, behavior: 'smooth' });
+    }
+  };
+
+  // Handle screenshot upload for evidence
+  const handleEvidenceUpload = (testCaseIndex: number, files: FileList) => {
+    const screenshots: string[] = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      // Check if it's an image
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: `${file.name} is not an image file.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      // Check file size (max 5MB for screenshots)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: `${file.name} is larger than 5MB.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      screenshots.push(`./evidence/${file.name}`);
+    }
+
+    if (screenshots.length > 0) {
+      // Update the evidence field with new screenshot paths
+      const currentEvidence = testCases[testCaseIndex].evidence;
+      const existingScreenshots = currentEvidence ? currentEvidence.split(', ').filter(Boolean) : [];
+      const allScreenshots = [...existingScreenshots, ...screenshots];
+      const evidenceString = allScreenshots.join(', ');
+      
+      updateTestCase(testCaseIndex, 'evidence', evidenceString);
+      
+      toast({
+        title: "Screenshots uploaded",
+        description: `${screenshots.length} screenshot(s) added to evidence folder.`,
+      });
+    }
+  };
+
+  const triggerEvidenceUpload = (testCaseIndex: number) => {
+    const input = fileInputRefs.current[testCaseIndex];
+    if (input) {
+      input.click();
     }
   };
 
@@ -240,12 +296,31 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
                   
                   <div>
                     <Label className="text-xs">Evidence Path</Label>
-                    <Input
-                      value={testCase.evidence}
-                      onChange={(e) => updateTestCase(index, 'evidence', e.target.value)}
-                      placeholder="./evidence/screenshot1.png"
-                      className="text-xs"
-                    />
+                    <div className="flex gap-1">
+                      <Input
+                        value={testCase.evidence}
+                        onChange={(e) => updateTestCase(index, 'evidence', e.target.value)}
+                        placeholder="./evidence/screenshot1.png"
+                        className="text-xs"
+                      />
+                      <Button
+                        onClick={() => triggerEvidenceUpload(index)}
+                        size="sm"
+                        variant="outline"
+                        className="px-2 shrink-0"
+                        title="Upload screenshots"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <input
+                        ref={(el) => fileInputRefs.current[index] = el}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => e.target.files && handleEvidenceUpload(index, e.target.files)}
+                        className="hidden"
+                      />
+                    </div>
                   </div>
                   
                   <div>
