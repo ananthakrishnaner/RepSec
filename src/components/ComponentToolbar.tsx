@@ -85,34 +85,6 @@ export const ComponentToolbar: React.FC = () => {
           );
         })}
       </div>
-      
-      <div className="pt-6 border-t border-border/30">
-        <h4 className="text-xs font-medium text-muted-foreground mb-4 flex items-center gap-3">
-          <div className="w-1.5 h-1.5 bg-gradient-to-r from-accent-foreground to-accent-foreground/60 rounded-full animate-pulse"></div>
-          Quick Templates
-          <div className="flex-1 h-px bg-gradient-to-r from-border/30 to-transparent"></div>
-        </h4>
-        <Card 
-          className="component-card p-4 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/10 group bg-gradient-to-r from-accent/20 to-card/80 border-border/50 backdrop-blur-sm hover:border-primary/30"
-          draggable
-          onDragStart={(event) => onDragStart(event, 'template-standard')}
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-accent/30 to-accent/10 rounded-lg group-hover:from-accent/40 group-hover:to-accent/20 transition-all duration-300 group-hover:scale-110">
-              <FileText className="h-3.5 w-3.5 text-accent-foreground group-hover:text-primary transition-colors duration-300" />
-            </div>
-            <div className="flex-1">
-              <span className="text-sm font-medium group-hover:text-primary transition-colors duration-300">
-                Standard Security Report
-              </span>
-              <p className="text-xs text-muted-foreground/70 mt-0.5">
-                Pre-built template with all sections
-              </p>
-            </div>
-            <div className="w-1.5 h-1.5 bg-accent-foreground/40 rounded-full group-hover:bg-primary/60 transition-all duration-300 group-hover:scale-125"></div>
-          </div>
-        </Card>
-      </div>
     </div>
   );
 };

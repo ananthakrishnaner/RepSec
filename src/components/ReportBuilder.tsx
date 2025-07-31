@@ -72,41 +72,6 @@ export const ReportBuilder: React.FC = () => {
     [setEdges]
   );
 
-  const createStandardTemplate = useCallback((basePosition: { x: number; y: number }) => {
-    return [
-      {
-        id: `header-${Date.now()}`,
-        type: 'sectionHeader',
-        position: { x: basePosition.x, y: basePosition.y },
-        data: { label: 'Report Title', title: 'Security Testing Report', level: 'h1' }
-      },
-      {
-        id: `project-${Date.now()}`,
-        type: 'textInput',
-        position: { x: basePosition.x, y: basePosition.y + 150 },
-        data: { label: 'Project Name', placeholder: 'Enter project name...', value: '' }
-      },
-      {
-        id: `scope-header-${Date.now()}`,
-        type: 'sectionHeader',
-        position: { x: basePosition.x, y: basePosition.y + 300 },
-        data: { label: 'Scope Section', title: 'Scope of Work', level: 'h2' }
-      },
-      {
-        id: `scope-${Date.now()}`,
-        type: 'textInput',
-        position: { x: basePosition.x, y: basePosition.y + 450 },
-        data: { label: 'Scope Description', placeholder: 'Describe the scope...', multiline: true, value: '' }
-      },
-      {
-        id: `table-${Date.now()}`,
-        type: 'table',
-        position: { x: basePosition.x + 400, y: basePosition.y },
-        data: { label: 'Test Cases Table', testCases: [] }
-      }
-    ];
-  }, []);
-
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
@@ -127,13 +92,6 @@ export const ReportBuilder: React.FC = () => {
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
       };
-
-      // Handle template drop
-      if (type === 'template-standard') {
-        const templateNodes = createStandardTemplate(position);
-        setNodes((nds) => [...nds, ...templateNodes]);
-        return;
-      }
 
       const newNode: Node = {
         id: `${type}-${Date.now()}`,
