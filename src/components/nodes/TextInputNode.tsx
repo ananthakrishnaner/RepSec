@@ -30,12 +30,20 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
 
   const handleValueChange = (newValue: string) => {
     appLogger.info('🎯 TextInputNode handleValueChange TRIGGERED', { nodeId: id, value: newValue, fieldType: data.fieldType });
+    
+    // Update local state first
     setValue(newValue);
+    
+    // Then call updateNodeData if available
     if (updateNodeData) {
-      appLogger.info('✅ Calling updateNodeData with fieldType', { nodeId: id, field: 'value', value: newValue, fieldType: data.fieldType });
+      appLogger.info('✅ About to call updateNodeData', { nodeId: id, field: 'value', value: newValue, fieldType: data.fieldType });
+      
+      // Call updateNodeData immediately
       updateNodeData(id, 'value', newValue);
+      
+      appLogger.info('✅ updateNodeData called successfully');
     } else {
-      appLogger.error('❌ updateNodeData is not available!', { nodeId: id });
+      appLogger.error('❌ updateNodeData is not available!', { nodeId: id, fieldType: data.fieldType });
     }
   };
 
