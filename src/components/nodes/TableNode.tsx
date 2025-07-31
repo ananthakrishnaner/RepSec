@@ -86,8 +86,8 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
         </Button>
       </div>
 
-      <ScrollArea className="h-96">
-        <div className="space-y-4 pr-4">
+      <div className="h-96 overflow-auto">
+        <div className="space-y-4 pr-4 min-w-[1200px]">
           {testCases.map((testCase, index) => (
             <div key={index} className="border border-border rounded">
               <div className="flex items-center justify-between p-3 border-b border-border">
@@ -104,104 +104,102 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
                 )}
               </div>
               
-              <ScrollArea className="w-full">
-                <div className="min-w-[1200px] p-3">
-                  <div className="grid grid-cols-8 gap-3">
-                    <div>
-                      <Label className="text-xs">ID</Label>
-                      <Input
-                        value={testCase.id}
-                        onChange={(e) => updateTestCase(index, 'id', e.target.value)}
-                        placeholder="TC-001"
-                        className="text-xs"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-xs">Test Case</Label>
-                      <Input
-                        value={testCase.testCase}
-                        onChange={(e) => updateTestCase(index, 'testCase', e.target.value)}
-                        placeholder="SQL Injection Test"
-                        className="text-xs"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-xs">Category</Label>
-                      <Input
-                        value={testCase.category}
-                        onChange={(e) => updateTestCase(index, 'category', e.target.value)}
-                        placeholder="Injection"
-                        className="text-xs"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-xs">Exploited</Label>
-                      <Select value={testCase.exploited} onValueChange={(value) => updateTestCase(index, 'exploited', value)}>
-                        <SelectTrigger className="text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Yes">Yes</SelectItem>
-                          <SelectItem value="No">No</SelectItem>
-                          <SelectItem value="Partial">Partial</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label className="text-xs">URL Reference</Label>
-                      <Input
-                        value={testCase.url}
-                        onChange={(e) => updateTestCase(index, 'url', e.target.value)}
-                        placeholder="https://example.com/vuln"
-                        className="text-xs"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-xs">Evidence Path</Label>
-                      <Input
-                        value={testCase.evidence}
-                        onChange={(e) => updateTestCase(index, 'evidence', e.target.value)}
-                        placeholder="./evidence/screenshot1.png"
-                        className="text-xs"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-xs">Remediation</Label>
-                      <Select value={testCase.remediation} onValueChange={(value) => updateTestCase(index, 'remediation', value)}>
-                        <SelectTrigger className="text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Pending">Pending</SelectItem>
-                          <SelectItem value="Fixed">Fixed</SelectItem>
-                          <SelectItem value="Won't Fix">Won't Fix</SelectItem>
-                          <SelectItem value="Mitigated">Mitigated</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label className="text-xs">Tester Name</Label>
-                      <Input
-                        value={testCase.tester}
-                        onChange={(e) => updateTestCase(index, 'tester', e.target.value)}
-                        placeholder="John Doe"
-                        className="text-xs"
-                      />
-                    </div>
+              <div className="p-3">
+                <div className="grid grid-cols-8 gap-3 min-w-[1100px]">
+                  <div>
+                    <Label className="text-xs">ID</Label>
+                    <Input
+                      value={testCase.id}
+                      onChange={(e) => updateTestCase(index, 'id', e.target.value)}
+                      placeholder="TC-001"
+                      className="text-xs"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">Test Case</Label>
+                    <Input
+                      value={testCase.testCase}
+                      onChange={(e) => updateTestCase(index, 'testCase', e.target.value)}
+                      placeholder="SQL Injection Test"
+                      className="text-xs"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">Category</Label>
+                    <Input
+                      value={testCase.category}
+                      onChange={(e) => updateTestCase(index, 'category', e.target.value)}
+                      placeholder="Injection"
+                      className="text-xs"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">Exploited</Label>
+                    <Select value={testCase.exploited} onValueChange={(value) => updateTestCase(index, 'exploited', value)}>
+                      <SelectTrigger className="text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Yes">Yes</SelectItem>
+                        <SelectItem value="No">No</SelectItem>
+                        <SelectItem value="Partial">Partial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">URL Reference</Label>
+                    <Input
+                      value={testCase.url}
+                      onChange={(e) => updateTestCase(index, 'url', e.target.value)}
+                      placeholder="https://example.com/vuln"
+                      className="text-xs"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">Evidence Path</Label>
+                    <Input
+                      value={testCase.evidence}
+                      onChange={(e) => updateTestCase(index, 'evidence', e.target.value)}
+                      placeholder="./evidence/screenshot1.png"
+                      className="text-xs"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">Remediation</Label>
+                    <Select value={testCase.remediation} onValueChange={(value) => updateTestCase(index, 'remediation', value)}>
+                      <SelectTrigger className="text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Fixed">Fixed</SelectItem>
+                        <SelectItem value="Won't Fix">Won't Fix</SelectItem>
+                        <SelectItem value="Mitigated">Mitigated</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">Tester Name</Label>
+                    <Input
+                      value={testCase.tester}
+                      onChange={(e) => updateTestCase(index, 'tester', e.target.value)}
+                      placeholder="John Doe"
+                      className="text-xs"
+                    />
                   </div>
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
 
       <Handle type="source" position={Position.Bottom} className="w-2 h-2" />
     </Card>
