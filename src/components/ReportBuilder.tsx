@@ -90,10 +90,19 @@ export const ReportBuilder: React.FC = () => {
   const updatePreviewFromBuilder = () => {
     appLogger.info('🖼️ Updating preview from builder - collecting current data');
     appLogger.debug('📊 Current reportData to copy to preview:', reportData);
+    appLogger.debug('📊 Current nodes in builder:', nodes.map(n => ({ id: n.id, type: n.type, data: n.data })));
+    
+    // Check if reportData has any content
+    const hasContent = Object.values(reportData).some(value => 
+      Array.isArray(value) ? value.length > 0 : Boolean(value)
+    );
+    
+    appLogger.info(`📋 ReportData has content: ${hasContent}`);
     
     // Copy current builder data to preview
     setPreviewData({ ...reportData });
     appLogger.info('✅ Preview data updated with current builder data');
+    appLogger.debug('📊 New previewData will be:', reportData);
   };
 
   // Standard nodes initialization - moved up to avoid "used before declaration" error

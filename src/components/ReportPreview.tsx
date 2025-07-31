@@ -42,6 +42,18 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
   appLogger.info('🖼️ ReportPreview render - received data', reportData);
   appLogger.debug('🖼️ Data object keys', Object.keys(reportData));
   
+  // Check if we have any meaningful data
+  const hasData = reportData.projectName || 
+                 reportData.scope || 
+                 reportData.baselines || 
+                 reportData.testCases.length > 0 || 
+                 reportData.changeDescription || 
+                 reportData.linkedStories || 
+                 reportData.codeSnippets.length > 0 || 
+                 reportData.attachments.length > 0;
+
+  appLogger.info(`🔍 Preview has meaningful data: ${hasData}`);
+  
   // Debug: Show what data we actually have
   React.useEffect(() => {
     appLogger.info('🖼️ ReportPreview data changed', {
@@ -49,9 +61,10 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
       scope: reportData.scope || '(empty)',
       hasTestCases: reportData.testCases.length > 0,
       hasCodeSnippets: reportData.codeSnippets.length > 0,
+      hasData: hasData,
       timestamp: new Date().toISOString()
     });
-  }, [reportData]);
+  }, [reportData, hasData]);
   const generateMarkdown = (): string => {
     let markdown = '';
 
