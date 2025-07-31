@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { LogViewer, appLogger } from './LogViewer';
 import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Edge, Node, Background, Controls, MiniMap } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Card } from '@/components/ui/card';
@@ -47,8 +48,8 @@ export const ReportBuilder: React.FC = () => {
   
   // Add tab change logging
   const handleTabChange = (newTab: string) => {
-    console.log('🔄 Tab changing from', activeTab, 'to', newTab);
-    console.log('📊 Current report data before tab change:', reportData);
+    appLogger.info('🔄 Tab changing', { from: activeTab, to: newTab });
+    appLogger.debug('📊 Current report data before tab change', reportData);
     setActiveTab(newTab);
   };
   
@@ -64,34 +65,34 @@ export const ReportBuilder: React.FC = () => {
   });
 
   const updateReportData = useCallback((updates: Partial<ReportData>) => {
-    console.log('📊 updateReportData called with:', updates);
-    console.log('📊 Current state before update:', reportData);
+    appLogger.info('📊 updateReportData called', updates);
+    appLogger.debug('📊 Current state before update', reportData);
     setReportData((prev) => {
       const newData = { ...prev, ...updates };
-      console.log('📋 New report data state:', newData);
+      appLogger.info('📋 New report data state', newData);
       return newData;
     });
   }, [reportData]);
 
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
-    console.log('🔄 Node data update:', nodeId, field, value);
+    appLogger.debug('🔄 Node data update', { nodeId, field, value });
     
     // Update report data immediately for live preview
     if (field === 'value') {
       if (nodeId === 'project-name' || nodeId.includes('project')) {
-        console.log('🏷️ Setting project name:', value);
+        appLogger.info('🏷️ Setting project name', { value });
         updateReportData({ projectName: value });
       } else if (nodeId === 'scope-text' || nodeId.includes('scope')) {
-        console.log('🎯 Setting scope:', value);
+        appLogger.info('🎯 Setting scope', { value });
         updateReportData({ scope: value });
       } else if (nodeId.includes('baseline')) {
-        console.log('📋 Setting baselines:', value);
+        appLogger.info('📋 Setting baselines', { value });
         updateReportData({ baselines: value });
       } else if (nodeId.includes('change')) {
-        console.log('🔄 Setting change description:', value);
+        appLogger.info('🔄 Setting change description', { value });
         updateReportData({ changeDescription: value });
       } else if (nodeId.includes('stories')) {
-        console.log('📖 Setting linked stories:', value);
+        appLogger.info('📖 Setting linked stories', { value });
         updateReportData({ linkedStories: value });
       }
     }
@@ -183,8 +184,8 @@ export const ReportBuilder: React.FC = () => {
 
   // TEMPORARY: Add a direct test of data flow
   const testDataFlow = () => {
-    console.log('🧪 DIRECT TEST: Setting test data - BEFORE UPDATE');
-    console.log('📊 Current reportData before test:', reportData);
+    appLogger.info('🧪 DIRECT TEST: Setting test data - BEFORE UPDATE');
+    appLogger.debug('📊 Current reportData before test', reportData);
     
     const testData = {
       projectName: 'TEST PROJECT NAME',
@@ -197,12 +198,12 @@ export const ReportBuilder: React.FC = () => {
       attachments: []
     };
     
-    console.log('📊 Setting test data:', testData);
+    appLogger.info('📊 Setting test data', testData);
     setReportData(testData);
     
     // Force re-render check
     setTimeout(() => {
-      console.log('📊 ReportData after test (delayed check):', reportData);
+      appLogger.debug('📊 ReportData after test (delayed check)', reportData);
     }, 100);
   };
 
@@ -243,6 +244,7 @@ export const ReportBuilder: React.FC = () => {
           </div>
           <ComponentToolbar />
           <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3">
+            <LogViewer />
             <Button 
               onClick={testDataFlow}
               variant="outline"

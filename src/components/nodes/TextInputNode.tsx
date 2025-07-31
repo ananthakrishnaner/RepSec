@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react';
+import { appLogger } from '../LogViewer';
 import { Handle, Position } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,19 +28,19 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
   const [label, setLabel] = useState(data.label || 'Text Input');
 
   const handleValueChange = (newValue: string) => {
-    console.log('🎯 TextInputNode handleValueChange TRIGGERED:', id, newValue);
+    appLogger.info('🎯 TextInputNode handleValueChange TRIGGERED', { nodeId: id, value: newValue });
     setValue(newValue);
     if (updateNodeData) {
-      console.log('✅ Calling updateNodeData:', id, 'value', newValue);
+      appLogger.info('✅ Calling updateNodeData', { nodeId: id, field: 'value', value: newValue });
       updateNodeData(id, 'value', newValue);
     } else {
-      console.log('❌ updateNodeData is not available!');
+      appLogger.error('❌ updateNodeData is not available!', { nodeId: id });
     }
   };
 
   // Test function to bypass React Flow
   const testUpdate = () => {
-    console.log('🧪 TEST UPDATE BUTTON CLICKED for node:', id);
+    appLogger.info('🧪 TEST UPDATE BUTTON CLICKED', { nodeId: id });
     const testValue = 'Test content from ' + id + ' at ' + new Date().toLocaleTimeString();
     handleValueChange(testValue);
   };
@@ -51,7 +52,7 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
     }
   }, [data.value, value]);
 
-  console.log('📊 TextInputNode render:', id, 'updateNodeData:', !!updateNodeData, 'current value:', value);
+  appLogger.debug('📊 TextInputNode render', { nodeId: id, hasUpdateNodeData: !!updateNodeData, currentValue: value });
 
   return (
     <Card className="w-80 p-4 bg-gradient-to-br from-card to-accent/30 border-border shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm">
@@ -123,13 +124,13 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
                 e.stopPropagation(); 
                 e.preventDefault();
                 const newValue = e.target.value;
-                console.log('📝 TEXTAREA CHANGE EVENT:', newValue);
+                appLogger.debug('📝 TEXTAREA CHANGE EVENT', { nodeId: id, value: newValue });
                 handleValueChange(newValue);
               }}
               onInput={(e) => {
                 e.stopPropagation();
                 const newValue = (e.target as HTMLTextAreaElement).value;
-                console.log('📝 TEXTAREA INPUT EVENT:', newValue);
+                appLogger.debug('📝 TEXTAREA INPUT EVENT', { nodeId: id, value: newValue });
                 handleValueChange(newValue);
               }}
               onMouseDown={(e) => e.stopPropagation()}
@@ -146,13 +147,13 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
                 e.stopPropagation();
                 e.preventDefault();
                 const newValue = e.target.value;
-                console.log('📝 INPUT CHANGE EVENT:', newValue);
+                appLogger.debug('📝 INPUT CHANGE EVENT', { nodeId: id, value: newValue });
                 handleValueChange(newValue);
               }}
               onInput={(e) => {
                 e.stopPropagation();
                 const newValue = (e.target as HTMLInputElement).value;
-                console.log('📝 INPUT INPUT EVENT:', newValue);
+                appLogger.debug('📝 INPUT INPUT EVENT', { nodeId: id, value: newValue });
                 handleValueChange(newValue);
               }}
               onMouseDown={(e) => e.stopPropagation()}

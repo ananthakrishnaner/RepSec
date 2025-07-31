@@ -1,4 +1,5 @@
 import React from 'react';
+import { appLogger } from './LogViewer';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -38,12 +39,12 @@ interface ReportPreviewProps {
 }
 
 export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
-  console.log('🖼️ ReportPreview render - received data:', reportData);
-  console.log('🖼️ Data object keys:', Object.keys(reportData));
+  appLogger.info('🖼️ ReportPreview render - received data', reportData);
+  appLogger.debug('🖼️ Data object keys', Object.keys(reportData));
   
   // Debug: Show what data we actually have
   React.useEffect(() => {
-    console.log('🖼️ ReportPreview data changed:', {
+    appLogger.info('🖼️ ReportPreview data changed', {
       projectName: reportData.projectName || '(empty)',
       scope: reportData.scope || '(empty)',
       hasTestCases: reportData.testCases.length > 0,
