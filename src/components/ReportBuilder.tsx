@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ReportPreview } from './ReportPreview';
+import { MarkdownEditor } from './MarkdownEditor';
 import { ComponentToolbar } from './ComponentToolbar';
 import { TextInputNode } from './nodes/TextInputNode';
 import { TableNode } from './nodes/TableNode';
@@ -71,6 +72,41 @@ export const ReportBuilder: React.FC = () => {
     [setEdges]
   );
 
+  const createStandardTemplate = useCallback((basePosition: { x: number; y: number }) => {
+    return [
+      {
+        id: `header-${Date.now()}`,
+        type: 'sectionHeader',
+        position: { x: basePosition.x, y: basePosition.y },
+        data: { label: 'Report Title', title: 'Security Testing Report', level: 'h1' }
+      },
+      {
+        id: `project-${Date.now()}`,
+        type: 'textInput',
+        position: { x: basePosition.x, y: basePosition.y + 150 },
+        data: { label: 'Project Name', placeholder: 'Enter project name...', value: '' }
+      },
+      {
+        id: `scope-header-${Date.now()}`,
+        type: 'sectionHeader',
+        position: { x: basePosition.x, y: basePosition.y + 300 },
+        data: { label: 'Scope Section', title: 'Scope of Work', level: 'h2' }
+      },
+      {
+        id: `scope-${Date.now()}`,
+        type: 'textInput',
+        position: { x: basePosition.x, y: basePosition.y + 450 },
+        data: { label: 'Scope Description', placeholder: 'Describe the scope...', multiline: true, value: '' }
+      },
+      {
+        id: `table-${Date.now()}`,
+        type: 'table',
+        position: { x: basePosition.x + 400, y: basePosition.y },
+        data: { label: 'Test Cases Table', testCases: [] }
+      }
+    ];
+  }, []);
+
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
@@ -91,6 +127,13 @@ export const ReportBuilder: React.FC = () => {
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
       };
+
+      // Handle template drop
+      if (type === 'template-standard') {
+        const templateNodes = createStandardTemplate(position);
+        setNodes((nds) => [...nds, ...templateNodes]);
+        return;
+      }
 
       const newNode: Node = {
         id: `${type}-${Date.now()}`,
@@ -171,48 +214,76 @@ export const ReportBuilder: React.FC = () => {
     <div className="h-screen bg-gradient-to-br from-background via-background to-card overflow-hidden">
       <div className="flex h-full">
         {/* Sidebar with component toolbar */}
-        <div className="w-80 border-r border-border bg-gradient-to-b from-card to-accent/50 backdrop-blur-sm">
-          <div className="p-4 border-b border-border bg-gradient-to-r from-primary/10 to-primary/5">
-            <h2 className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+        <div className="w-80 border-r border-border/50 bg-gradient-to-b from-background via-card/30 to-primary/5 backdrop-blur-xl relative overflow-hidden">
+          {/* Animated background elements */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/3 to-transparent animate-pulse"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl animate-bounce"></div>
+          
+          <div className="relative z-10 p-6 border-b border-border/30 bg-gradient-to-r from-background/80 to-primary/5 backdrop-blur-sm">
+            <h2 className="text-xl font-bold bg-gradient-to-r from-primary via-primary/80 to-accent-foreground bg-clip-text text-transparent mb-2 animate-fade-in">
               Security Report Builder
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Drag components to build your report
+            <p className="text-sm text-muted-foreground/80 leading-relaxed">
+              Drag components to build your professional security report
             </p>
+            <div className="mt-3 flex gap-2">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse delay-75"></div>
+              <div className="w-2 h-2 bg-primary/30 rounded-full animate-pulse delay-150"></div>
+            </div>
           </div>
           <ComponentToolbar />
-          <div className="p-4 border-t border-border">
+          <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent">
             <Button 
               onClick={exportMarkdown} 
-              className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all duration-200"
+              className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-lg hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 transform hover:scale-105 font-medium"
             >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
               Export Markdown
             </Button>
           </div>
         </div>
 
         {/* Main content area */}
-        <div className="flex-1 flex flex-col">
-          <Tabs defaultValue="builder" className="h-full">
-            <div className="border-b border-border bg-gradient-to-r from-card to-accent/30">
-              <TabsList className="h-12 px-4 bg-transparent">
+        <div className="flex-1 flex flex-col bg-gradient-to-br from-background via-background/95 to-card/20">
+          <Tabs defaultValue="builder" className="h-full flex flex-col">
+            <div className="border-b border-border/30 bg-gradient-to-r from-background/90 via-card/30 to-background/90 backdrop-blur-sm">
+              <TabsList className="h-14 px-6 bg-transparent gap-1">
                 <TabsTrigger 
                   value="builder" 
-                  className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-200"
+                  className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-md transition-all duration-300 font-medium px-6 py-3 rounded-lg"
                 >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
                   Report Builder
                 </TabsTrigger>
                 <TabsTrigger 
                   value="preview"
-                  className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-200"
+                  className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-md transition-all duration-300 font-medium px-6 py-3 rounded-lg"
                 >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
                   Live Preview
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="markdown"
+                  className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-md transition-all duration-300 font-medium px-6 py-3 rounded-lg"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                  Markdown Code
                 </TabsTrigger>
               </TabsList>
             </div>
             
-            <TabsContent value="builder" className="flex-1 m-0 p-0">
-              <div className="h-full w-full" style={{ height: 'calc(100vh - 8rem)' }}>
+            <TabsContent value="builder" className="flex-1 m-0 p-0 animate-fade-in">
+              <div className="h-full w-full relative" style={{ height: 'calc(100vh - 9rem)' }}>
                 <ReactFlow
                   nodes={nodes}
                   edges={edges}
@@ -223,22 +294,32 @@ export const ReportBuilder: React.FC = () => {
                   onDragOver={onDragOver}
                   nodeTypes={nodeTypes}
                   fitView
-                  className="bg-gradient-to-br from-background/50 to-card/50"
+                  className="bg-gradient-to-br from-background/30 via-card/20 to-primary/5"
                   style={{ width: '100%', height: '100%' }}
                 >
-                  <Background gap={20} size={1} color="hsl(var(--border))" />
-                  <Controls className="bg-card/80 backdrop-blur-sm border border-border" />
+                  <Background 
+                    gap={24} 
+                    size={1.5} 
+                    color="hsl(var(--border))" 
+                    className="opacity-30" 
+                  />
+                  <Controls className="bg-card/90 backdrop-blur-md border border-border/50 shadow-lg rounded-lg" />
                   <MiniMap 
-                    className="bg-card/80 backdrop-blur-sm border border-border" 
+                    className="bg-card/90 backdrop-blur-md border border-border/50 shadow-lg rounded-lg" 
                     nodeColor="hsl(var(--primary))"
-                    maskColor="hsl(var(--background) / 0.8)"
+                    maskColor="hsl(var(--background) / 0.9)"
+                    style={{ width: 200, height: 150 }}
                   />
                 </ReactFlow>
               </div>
             </TabsContent>
             
-            <TabsContent value="preview" className="flex-1 m-0 p-0">
+            <TabsContent value="preview" className="flex-1 m-0 p-0 animate-fade-in">
               <ReportPreview reportData={reportData} />
+            </TabsContent>
+
+            <TabsContent value="markdown" className="flex-1 m-0 p-0 animate-fade-in">
+              <MarkdownEditor reportData={reportData} onUpdateMarkdown={setReportData} />
             </TabsContent>
           </Tabs>
         </div>

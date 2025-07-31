@@ -49,53 +49,67 @@ export const ComponentToolbar: React.FC = () => {
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-        <div className="w-2 h-2 bg-primary rounded-full"></div>
+    <div className="p-6 space-y-6">
+      <h3 className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-3">
+        <div className="w-2 h-2 bg-gradient-to-r from-primary to-primary/60 rounded-full animate-pulse"></div>
         Report Components
+        <div className="flex-1 h-px bg-gradient-to-r from-border/50 to-transparent"></div>
       </h3>
       
       <div className="space-y-3">
-        {components.map((component) => {
+        {components.map((component, index) => {
           const Icon = component.icon;
           return (
             <Card
               key={component.type}
-              className="component-card p-4 cursor-grab active:cursor-grabbing transform transition-all duration-200 hover:scale-105 group"
+              className="component-card p-4 cursor-grab active:cursor-grabbing transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/10 group bg-gradient-to-r from-card/80 to-accent/20 border-border/50 backdrop-blur-sm animate-fade-in hover:border-primary/30"
               draggable
               onDragStart={(event) => onDragStart(event, component.type)}
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors duration-200">
-                  <Icon className="h-4 w-4 text-primary" />
+                <div className="p-2.5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 group-hover:scale-110">
+                  <Icon className="h-4 w-4 text-primary group-hover:text-primary/90 transition-colors duration-300" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
+                  <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
                     {component.label}
                   </p>
-                  <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                  <p className="text-xs text-muted-foreground/80 leading-relaxed mt-1 group-hover:text-muted-foreground transition-colors duration-300">
                     {component.description}
                   </p>
                 </div>
+                <div className="w-2 h-2 bg-primary/30 rounded-full group-hover:bg-primary/60 transition-all duration-300 group-hover:scale-125"></div>
               </div>
             </Card>
           );
         })}
       </div>
       
-      <div className="pt-4 border-t border-border">
-        <h4 className="text-xs font-medium text-muted-foreground mb-3 flex items-center gap-2">
-          <div className="w-1.5 h-1.5 bg-accent-foreground rounded-full"></div>
+      <div className="pt-6 border-t border-border/30">
+        <h4 className="text-xs font-medium text-muted-foreground mb-4 flex items-center gap-3">
+          <div className="w-1.5 h-1.5 bg-gradient-to-r from-accent-foreground to-accent-foreground/60 rounded-full animate-pulse"></div>
           Quick Templates
+          <div className="flex-1 h-px bg-gradient-to-r from-border/30 to-transparent"></div>
         </h4>
-        <Card className="component-card p-3 cursor-pointer transform transition-all duration-200 hover:scale-105 group">
+        <Card 
+          className="component-card p-4 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/10 group bg-gradient-to-r from-accent/20 to-card/80 border-border/50 backdrop-blur-sm hover:border-primary/30"
+          draggable
+          onDragStart={(event) => onDragStart(event, 'template-standard')}
+        >
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-accent/20 rounded group-hover:bg-accent/30 transition-colors duration-200">
-              <FileText className="h-3 w-3 text-accent-foreground" />
+            <div className="p-2 bg-gradient-to-br from-accent/30 to-accent/10 rounded-lg group-hover:from-accent/40 group-hover:to-accent/20 transition-all duration-300 group-hover:scale-110">
+              <FileText className="h-3.5 w-3.5 text-accent-foreground group-hover:text-primary transition-colors duration-300" />
             </div>
-            <span className="text-xs font-medium group-hover:text-primary transition-colors duration-200">
-              Standard Security Report
-            </span>
+            <div className="flex-1">
+              <span className="text-sm font-medium group-hover:text-primary transition-colors duration-300">
+                Standard Security Report
+              </span>
+              <p className="text-xs text-muted-foreground/70 mt-0.5">
+                Pre-built template with all sections
+              </p>
+            </div>
+            <div className="w-1.5 h-1.5 bg-accent-foreground/40 rounded-full group-hover:bg-primary/60 transition-all duration-300 group-hover:scale-125"></div>
           </div>
         </Card>
       </div>
