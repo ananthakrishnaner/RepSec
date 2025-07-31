@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, Plus, Minus } from 'lucide-react';
 
 interface TestCase {
@@ -85,114 +86,122 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
         </Button>
       </div>
 
-      <div className="space-y-4 max-h-80 overflow-y-auto">
-        {testCases.map((testCase, index) => (
-          <div key={index} className="grid grid-cols-4 gap-2 p-3 border border-border rounded">
-            <div className="col-span-4 flex items-center justify-between mb-2">
-              <Label className="text-xs font-medium">Test Case #{index + 1}</Label>
-              {testCases.length > 1 && (
-                <Button
-                  onClick={() => removeTestCase(index)}
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-              )}
+      <ScrollArea className="max-h-80">
+        <div className="space-y-4 pr-4">
+          {testCases.map((testCase, index) => (
+            <div key={index} className="border border-border rounded">
+              <div className="flex items-center justify-between p-3 border-b border-border">
+                <Label className="text-xs font-medium">Test Case #{index + 1}</Label>
+                {testCases.length > 1 && (
+                  <Button
+                    onClick={() => removeTestCase(index)}
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+              
+              <ScrollArea className="w-full">
+                <div className="min-w-[1200px] p-3">
+                  <div className="grid grid-cols-8 gap-3">
+                    <div>
+                      <Label className="text-xs">ID</Label>
+                      <Input
+                        value={testCase.id}
+                        onChange={(e) => updateTestCase(index, 'id', e.target.value)}
+                        placeholder="TC-001"
+                        className="text-xs"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs">Test Case</Label>
+                      <Input
+                        value={testCase.testCase}
+                        onChange={(e) => updateTestCase(index, 'testCase', e.target.value)}
+                        placeholder="SQL Injection Test"
+                        className="text-xs"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs">Category</Label>
+                      <Input
+                        value={testCase.category}
+                        onChange={(e) => updateTestCase(index, 'category', e.target.value)}
+                        placeholder="Injection"
+                        className="text-xs"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs">Exploited</Label>
+                      <Select value={testCase.exploited} onValueChange={(value) => updateTestCase(index, 'exploited', value)}>
+                        <SelectTrigger className="text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Yes">Yes</SelectItem>
+                          <SelectItem value="No">No</SelectItem>
+                          <SelectItem value="Partial">Partial</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs">URL Reference</Label>
+                      <Input
+                        value={testCase.url}
+                        onChange={(e) => updateTestCase(index, 'url', e.target.value)}
+                        placeholder="https://example.com/vuln"
+                        className="text-xs"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs">Evidence Path</Label>
+                      <Input
+                        value={testCase.evidence}
+                        onChange={(e) => updateTestCase(index, 'evidence', e.target.value)}
+                        placeholder="./evidence/screenshot1.png"
+                        className="text-xs"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs">Remediation</Label>
+                      <Select value={testCase.remediation} onValueChange={(value) => updateTestCase(index, 'remediation', value)}>
+                        <SelectTrigger className="text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Pending">Pending</SelectItem>
+                          <SelectItem value="Fixed">Fixed</SelectItem>
+                          <SelectItem value="Won't Fix">Won't Fix</SelectItem>
+                          <SelectItem value="Mitigated">Mitigated</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs">Tester Name</Label>
+                      <Input
+                        value={testCase.tester}
+                        onChange={(e) => updateTestCase(index, 'tester', e.target.value)}
+                        placeholder="John Doe"
+                        className="text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
             </div>
-            
-            <div>
-              <Label className="text-xs">ID</Label>
-              <Input
-                value={testCase.id}
-                onChange={(e) => updateTestCase(index, 'id', e.target.value)}
-                placeholder="TC-001"
-                className="text-xs"
-              />
-            </div>
-            
-            <div>
-              <Label className="text-xs">Test Case</Label>
-              <Input
-                value={testCase.testCase}
-                onChange={(e) => updateTestCase(index, 'testCase', e.target.value)}
-                placeholder="SQL Injection Test"
-                className="text-xs"
-              />
-            </div>
-            
-            <div>
-              <Label className="text-xs">Category</Label>
-              <Input
-                value={testCase.category}
-                onChange={(e) => updateTestCase(index, 'category', e.target.value)}
-                placeholder="Injection"
-                className="text-xs"
-              />
-            </div>
-            
-            <div>
-              <Label className="text-xs">Exploited</Label>
-              <Select value={testCase.exploited} onValueChange={(value) => updateTestCase(index, 'exploited', value)}>
-                <SelectTrigger className="text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Yes">Yes</SelectItem>
-                  <SelectItem value="No">No</SelectItem>
-                  <SelectItem value="Partial">Partial</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label className="text-xs">URL Reference</Label>
-              <Input
-                value={testCase.url}
-                onChange={(e) => updateTestCase(index, 'url', e.target.value)}
-                placeholder="https://example.com/vuln"
-                className="text-xs"
-              />
-            </div>
-            
-            <div>
-              <Label className="text-xs">Evidence Path</Label>
-              <Input
-                value={testCase.evidence}
-                onChange={(e) => updateTestCase(index, 'evidence', e.target.value)}
-                placeholder="./evidence/screenshot1.png"
-                className="text-xs"
-              />
-            </div>
-            
-            <div>
-              <Label className="text-xs">Remediation</Label>
-              <Select value={testCase.remediation} onValueChange={(value) => updateTestCase(index, 'remediation', value)}>
-                <SelectTrigger className="text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Fixed">Fixed</SelectItem>
-                  <SelectItem value="Won't Fix">Won't Fix</SelectItem>
-                  <SelectItem value="Mitigated">Mitigated</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label className="text-xs">Tester Name</Label>
-              <Input
-                value={testCase.tester}
-                onChange={(e) => updateTestCase(index, 'tester', e.target.value)}
-                placeholder="John Doe"
-                className="text-xs"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </ScrollArea>
 
       <Handle type="source" position={Position.Bottom} className="w-2 h-2" />
     </Card>
