@@ -87,33 +87,53 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
       </div>
 
       <div 
-        className="h-96 border-4 border-blue-500/30 rounded-md bg-slate-50 dark:bg-slate-900"
-        id="test-case-scroll-container"
         style={{
-          overflow: 'auto',
-          scrollbarWidth: 'auto',
-          scrollbarColor: 'rgb(59, 130, 246) rgb(226, 232, 240)'
+          height: '400px',
+          width: '750px',
+          border: '3px solid #3b82f6',
+          borderRadius: '8px',
+          backgroundColor: '#f8fafc',
+          overflow: 'scroll',
+          overflowX: 'scroll',
+          overflowY: 'scroll'
         }}
       >
-        <div className="space-y-4 p-4 min-w-[1400px]">
-          {testCases.map((testCase, index) => (
-            <div key={index} className="border border-border rounded bg-background/80">
-              <div className="flex items-center justify-between p-3 border-b border-border bg-muted/20">
-                <Label className="text-xs font-medium">Test Case #{index + 1}</Label>
-                {testCases.length > 1 && (
-                  <Button
-                    onClick={() => removeTestCase(index)}
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                  >
-                    <Minus className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-              
-              <div className="p-4 bg-background/50">
-                <div className="grid grid-cols-8 gap-4 min-w-[1300px]">
+        <div style={{ minWidth: '1500px', minHeight: '600px', padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {testCases.map((testCase, index) => (
+              <div key={index} style={{ 
+                border: '1px solid #e2e8f0', 
+                borderRadius: '8px', 
+                backgroundColor: '#ffffff',
+                padding: '16px'
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  marginBottom: '12px',
+                  paddingBottom: '8px',
+                  borderBottom: '1px solid #e2e8f0'
+                }}>
+                  <Label className="text-xs font-medium">Test Case #{index + 1}</Label>
+                  {testCases.length > 1 && (
+                    <Button
+                      onClick={() => removeTestCase(index)}
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+                
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(8, 1fr)', 
+                  gap: '12px',
+                  minWidth: '1400px'
+                }}>
                   <div>
                     <Label className="text-xs">ID</Label>
                     <Input
@@ -204,8 +224,8 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
