@@ -17,6 +17,10 @@ import { SectionHeaderNode } from './nodes/SectionHeaderNode';
 import { LinkedStoriesNode } from './nodes/LinkedStoriesNode';
 import { initialNodes, initialEdges } from './initialElements';
 
+// Move ID counter outside component to prevent resets
+let globalNodeId = 0;
+const getId = () => `dndnode_${globalNodeId++}`;
+
 interface ReportData {
   projectName: string;
   scope: string;
@@ -290,8 +294,8 @@ export const ReportBuilder: React.FC = () => {
     setNodes([]);
     setEdges([]);
     
-    // Reset ID counter
-    id = 0;
+    // Reset global ID counter
+    globalNodeId = 0;
   };
 
   // Export/Import functionality
@@ -381,9 +385,6 @@ export const ReportBuilder: React.FC = () => {
     };
     input.click();
   };
-
-  let id = 0;
-  const getId = () => `dndnode_${id++}`;
 
   return (
     <div className="h-screen bg-gradient-to-br from-background via-background to-card overflow-hidden">
