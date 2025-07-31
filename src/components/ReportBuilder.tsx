@@ -14,7 +14,10 @@ import { SectionHeaderNode } from './nodes/SectionHeaderNode';
 import { initialNodes, initialEdges } from './initialElements';
 
 const createNodeTypes = (updateNodeData: (nodeId: string, field: string, value: any) => void) => ({
-  textInput: (props: any) => <TextInputNode {...props} updateNodeData={updateNodeData} />,
+  textInput: (props: any) => {
+    console.log('Rendering TextInputNode with props:', props);
+    return <TextInputNode {...props} updateNodeData={updateNodeData} />;
+  },
   table: (props: any) => <TableNode {...props} updateNodeData={updateNodeData} />,
   codeSnippet: (props: any) => <CodeSnippetNode {...props} updateNodeData={updateNodeData} />,
   fileUpload: (props: any) => <FileUploadNode {...props} updateNodeData={updateNodeData} />,

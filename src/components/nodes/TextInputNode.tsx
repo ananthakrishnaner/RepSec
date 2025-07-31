@@ -25,9 +25,12 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
   const [label, setLabel] = useState(data.label || 'Text Input');
 
   const handleValueChange = (newValue: string) => {
+    console.log('TextInputNode handleValueChange:', id, newValue);
     setValue(newValue);
     updateNodeData?.(id, 'value', newValue);
   };
+
+  console.log('TextInputNode render:', id, 'updateNodeData:', !!updateNodeData);
 
   return (
     <Card className="w-80 p-4 bg-gradient-to-br from-card to-accent/30 border-border shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm">
