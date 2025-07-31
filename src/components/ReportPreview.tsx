@@ -167,14 +167,71 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
       sections.push(
         <div key="codesnippets" className="mb-8">
           <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
-            Code Snippets
+            Code Snippets & HTTP Traffic
           </h2>
           {reportData.codeSnippets.map((snippet, index) => (
-            <div key={index} className="mb-6">
-              <h3 className="text-xl font-medium text-foreground mt-6 mb-3">{snippet.title}</h3>
-              <pre className="bg-gradient-to-br from-muted/50 to-accent/30 p-6 rounded-lg overflow-x-auto border border-border shadow-inner my-4">
-                <code className="text-sm">{snippet.content}</code>
-              </pre>
+            <div key={index} className="mb-8">
+              <h3 className="text-xl font-medium text-foreground mt-6 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+                {snippet.title}
+                <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded-full font-mono">
+                  {snippet.language}
+                </span>
+              </h3>
+              
+              {snippet.language === 'http' && snippet.content.includes('## HTTP Request') ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* HTTP Request */}
+                  {snippet.content.includes('## HTTP Request') && (
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 overflow-hidden">
+                      <div className="bg-blue-600 text-white px-4 py-3 font-semibold flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                        </svg>
+                        HTTP Request
+                      </div>
+                      <div className="p-4">
+                        <pre className="bg-white dark:bg-gray-900 p-4 rounded border text-sm font-mono overflow-x-auto whitespace-pre-wrap">
+                          {snippet.content.split('## HTTP Request')[1]?.split('```http')[1]?.split('```')[0]?.trim() || 'No request data'}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* HTTP Response */}
+                  {snippet.content.includes('## HTTP Response') && (
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 rounded-lg border border-green-200 dark:border-green-800 overflow-hidden">
+                      <div className="bg-green-600 text-white px-4 py-3 font-semibold flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                        </svg>
+                        HTTP Response
+                      </div>
+                      <div className="p-4">
+                        <pre className="bg-white dark:bg-gray-900 p-4 rounded border text-sm font-mono overflow-x-auto whitespace-pre-wrap">
+                          {snippet.content.split('## HTTP Response')[1]?.split('```http')[1]?.split('```')[0]?.trim() || 'No response data'}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950/30 dark:to-gray-800/20 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="bg-gray-700 text-white px-4 py-3 font-semibold flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    {snippet.language.toUpperCase()} Code
+                  </div>
+                  <div className="p-4">
+                    <pre className="bg-white dark:bg-gray-900 p-4 rounded border text-sm font-mono overflow-x-auto whitespace-pre-wrap">
+                      {snippet.content}
+                    </pre>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
