@@ -217,9 +217,10 @@ export const ReportBuilder: React.FC = () => {
     [setNodes, updateNodeData, updateNodeInState]
   );
 
-  // Clear all data function
+  // Clear all data function - comprehensive clear
   const clearAllData = () => {
-    appLogger.info('🧹 Clearing all report data');
+    appLogger.info('🧹 COMPREHENSIVE CLEAR: Clearing all report data and nodes');
+    
     const emptyData = {
       projectName: '',
       scope: '',
@@ -231,11 +232,22 @@ export const ReportBuilder: React.FC = () => {
       attachments: [],
     };
     
+    // Clear all state completely
     setReportData(emptyData);
-    setPreviewData(emptyData); // Clear preview too
-    // Also clear all nodes except initial ones
-    setNodes(initialNodes);
+    setPreviewData(emptyData);
+    
+    // Reset nodes and edges to initial state (empty)
+    const freshInitialNodes = initialNodes.map(node => ({
+      ...node,
+      data: { ...node.data, value: '' } // Clear any stored values
+    }));
+    
+    setNodes(freshInitialNodes);
     setEdges(initialEdges);
+    
+    appLogger.info('✅ All data cleared - reportData, previewData, nodes, and edges reset');
+    appLogger.debug('📊 New empty reportData', emptyData);
+    appLogger.debug('📊 New empty previewData', emptyData);
   };
 
   const exportMarkdown = useCallback(() => {
