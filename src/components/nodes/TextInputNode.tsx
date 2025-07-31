@@ -15,6 +15,7 @@ interface TextInputNodeProps {
     value?: string;
     placeholder?: string;
     multiline?: boolean;
+    fieldType?: string; // Add fieldType to the interface
     updateNodeData?: (nodeId: string, field: string, value: any) => void;
   };
   id: string;
@@ -28,10 +29,10 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
   const [label, setLabel] = useState(data.label || 'Text Input');
 
   const handleValueChange = (newValue: string) => {
-    appLogger.info('🎯 TextInputNode handleValueChange TRIGGERED', { nodeId: id, value: newValue });
+    appLogger.info('🎯 TextInputNode handleValueChange TRIGGERED', { nodeId: id, value: newValue, fieldType: data.fieldType });
     setValue(newValue);
     if (updateNodeData) {
-      appLogger.info('✅ Calling updateNodeData', { nodeId: id, field: 'value', value: newValue });
+      appLogger.info('✅ Calling updateNodeData with fieldType', { nodeId: id, field: 'value', value: newValue, fieldType: data.fieldType });
       updateNodeData(id, 'value', newValue);
     } else {
       appLogger.error('❌ updateNodeData is not available!', { nodeId: id });
@@ -40,8 +41,9 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
 
   // Test function to bypass React Flow
   const testUpdate = () => {
-    appLogger.info('🧪 TEST UPDATE BUTTON CLICKED', { nodeId: id });
-    const testValue = 'Test content from ' + id + ' at ' + new Date().toLocaleTimeString();
+    appLogger.info('🧪 TEST UPDATE BUTTON CLICKED', { nodeId: id, fieldType: data.fieldType });
+    const testValue = 'Test content from ' + (data.fieldType || id) + ' at ' + new Date().toLocaleTimeString();
+    appLogger.info('🧪 Setting test value', { testValue });
     handleValueChange(testValue);
   };
 
@@ -53,7 +55,7 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
     }
   }, [data.value, value, id]);
 
-  appLogger.debug('📊 TextInputNode render', { nodeId: id, hasUpdateNodeData: !!updateNodeData, currentValue: value });
+  appLogger.debug('📊 TextInputNode render', { nodeId: id, hasUpdateNodeData: !!updateNodeData, currentValue: value, fieldType: data.fieldType, label: data.label });
 
   return (
     <Card className="w-80 p-4 bg-gradient-to-br from-card to-accent/30 border-border shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm">

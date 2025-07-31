@@ -50,6 +50,7 @@ export const ReportBuilder: React.FC = () => {
   const handleTabChange = (newTab: string) => {
     appLogger.info('🔄 Tab changing', { from: activeTab, to: newTab });
     appLogger.debug('📊 Current report data before tab change', reportData);
+    appLogger.debug('📊 Current preview data before tab change', previewData);
     setActiveTab(newTab);
   };
   
@@ -118,25 +119,25 @@ export const ReportBuilder: React.FC = () => {
       const node = nodes.find(n => n.id === nodeId);
       const fieldType = node?.data?.fieldType;
       
-      appLogger.info('🔍 Field mapping', { nodeId, fieldType, value });
+      appLogger.info('🔍 Field mapping', { nodeId, fieldType, value, nodeFound: !!node });
       
-      if (fieldType === 'projectName' || nodeId === 'project-name' || nodeId.includes('project')) {
+      if (fieldType === 'projectName') {
         appLogger.info('🏷️ Setting project name', { value });
         updateReportData({ projectName: value });
-      } else if (fieldType === 'scope' || nodeId === 'scope-text' || nodeId.includes('scope')) {
+      } else if (fieldType === 'scope') {
         appLogger.info('🎯 Setting scope', { value });
         updateReportData({ scope: value });
-      } else if (fieldType === 'baselines' || nodeId.includes('baseline')) {
+      } else if (fieldType === 'baselines') {
         appLogger.info('📋 Setting baselines', { value });
         updateReportData({ baselines: value });
-      } else if (fieldType === 'changeDescription' || nodeId.includes('change')) {
+      } else if (fieldType === 'changeDescription') {
         appLogger.info('🔄 Setting change description', { value });
         updateReportData({ changeDescription: value });
-      } else if (fieldType === 'linkedStories' || nodeId.includes('stories')) {
+      } else if (fieldType === 'linkedStories') {
         appLogger.info('📖 Setting linked stories', { value });
         updateReportData({ linkedStories: value });
       } else {
-        appLogger.warn('⚠️ Unknown field type - input not mapped to report data', { nodeId, fieldType, value });
+        appLogger.warn('⚠️ Unknown field type - input not mapped to report data', { nodeId, fieldType, value, availableNodes: nodes.map(n => ({id: n.id, fieldType: n.data?.fieldType})) });
       }
     }
   }, [updateReportData, nodes]);
