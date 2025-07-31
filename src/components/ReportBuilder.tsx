@@ -145,6 +145,9 @@ export const ReportBuilder: React.FC = () => {
           availableFieldTypes: nodes.map(n => n.data?.fieldType).filter(Boolean)
         });
       }
+    } else if (field === 'label' || field === 'placeholder') {
+      // Store label and placeholder in node data for display purposes
+      debugLogger.info('NODE_UPDATE', `Storing ${field} in node data`, { nodeId, field, value });
     }
   }, [updateReportData, nodes]);
 

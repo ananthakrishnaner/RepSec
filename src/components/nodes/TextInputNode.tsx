@@ -91,7 +91,13 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
           value={label}
           onChange={(e) => {
             e.stopPropagation();
-            setLabel(e.target.value);
+            const newLabel = e.target.value;
+            setLabel(newLabel);
+            // Also update the report data with the label
+            if (updateNodeData) {
+              debugLogger.info('TEXT_INPUT', '🏷️ LABEL CHANGED', { nodeId: id, label: newLabel, fieldType: data.fieldType });
+              updateNodeData(id, 'label', newLabel);
+            }
           }}
           onMouseDown={(e) => e.stopPropagation()}
           className="text-sm font-semibold border-none p-0 h-auto bg-transparent focus:ring-0 focus:border-transparent nodrag nopan"
@@ -109,7 +115,13 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
             value={placeholder}
             onChange={(e) => {
               e.stopPropagation();
-              setPlaceholder(e.target.value);
+              const newPlaceholder = e.target.value;
+              setPlaceholder(newPlaceholder);
+              // Also update the report data with the placeholder
+              if (updateNodeData) {
+                debugLogger.info('TEXT_INPUT', '📝 PLACEHOLDER CHANGED', { nodeId: id, placeholder: newPlaceholder, fieldType: data.fieldType });
+                updateNodeData(id, 'placeholder', newPlaceholder);
+              }
             }}
             onMouseDown={(e) => e.stopPropagation()}
             className="modern-input text-xs nodrag nopan"
