@@ -15,9 +15,9 @@ interface CodeSnippetNodeProps {
     title?: string;
     content?: string;
     language?: string;
+    updateNodeData?: (nodeId: string, field: string, value: any) => void;
   };
   id: string;
-  updateNodeData?: (nodeId: string, field: string, value: any) => void;
 }
 
 const languages = [
@@ -31,7 +31,8 @@ const languages = [
   { value: 'curl', label: 'cURL' },
 ];
 
-export const CodeSnippetNode = memo<CodeSnippetNodeProps>(({ data, id, updateNodeData }) => {
+export const CodeSnippetNode = memo<CodeSnippetNodeProps>(({ data, id }) => {
+  const updateNodeData = data.updateNodeData;
   const [title, setTitle] = useState(data.title || 'Code Snippet');
   const [content, setContent] = useState(data.content || '');
   const [language, setLanguage] = useState(data.language || 'http');

@@ -32,6 +32,7 @@ interface ReportData {
   changeDescription: string;
   linkedStories: string;
   codeSnippets: Array<{
+    nodeId?: string;
     title: string;
     content: string;
     language: string;
@@ -148,6 +149,37 @@ export const ReportBuilder: React.FC = () => {
     } else if (field === 'label' || field === 'placeholder') {
       // Store label and placeholder in node data for display purposes
       debugLogger.info('NODE_UPDATE', `Storing ${field} in node data`, { nodeId, field, value });
+    } else if (field === 'content' || field === 'title' || field === 'language') {
+      // Handle code snippet fields
+      const node = nodes.find(n => n.id === nodeId);
+      debugLogger.info('NODE_UPDATE', 'Processing code snippet field', { nodeId, field, value, nodeType: node?.type });
+      
+      if (node?.type === 'codeSnippet') {
+        setReportData(prev => {
+          const existingSnippets = prev.codeSnippets || [];
+          const snippetIndex = existingSnippets.findIndex(s => s.nodeId === nodeId);
+          
+          if (snippetIndex >= 0) {
+            // Update existing snippet
+            const updatedSnippets = [...existingSnippets];
+            updatedSnippets[snippetIndex] = {
+              ...updatedSnippets[snippetIndex],
+              [field]: value
+            };
+            return { ...prev, codeSnippets: updatedSnippets };
+          } else {
+            // Create new snippet
+            const newSnippet = {
+              nodeId,
+              title: field === 'title' ? value : 'Code Snippet',
+              content: field === 'content' ? value : '',
+              language: field === 'language' ? value : 'http'
+            };
+            return { ...prev, codeSnippets: [...existingSnippets, newSnippet] };
+          }
+        });
+        debugLogger.success('NODE_UPDATE', 'Code snippet updated', { nodeId, field, value });
+      }
     }
   }, [updateReportData, nodes]);
 

@@ -92,9 +92,11 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
           onChange={(e) => {
             e.stopPropagation();
             const newLabel = e.target.value;
+            console.log('🔥 LABEL CHANGE DETECTED:', { nodeId: id, newLabel, fieldType: data.fieldType });
             setLabel(newLabel);
             // The label IS the actual value for the field type
             if (updateNodeData && data.fieldType) {
+              console.log('🚀 SENDING LABEL AS PRIMARY VALUE:', { nodeId: id, value: newLabel, fieldType: data.fieldType });
               debugLogger.info('TEXT_INPUT', '🏷️ LABEL AS PRIMARY VALUE', { 
                 nodeId: id, 
                 label: newLabel, 
@@ -102,6 +104,8 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
                 mapping: 'This is the main field value'
               });
               updateNodeData(id, 'value', newLabel); // Send label as the main value
+            } else {
+              console.log('❌ NO UPDATE FUNCTION:', { hasUpdateNodeData: !!updateNodeData, fieldType: data.fieldType });
             }
           }}
           onMouseDown={(e) => e.stopPropagation()}

@@ -19,6 +19,7 @@ interface ReportData {
   changeDescription: string;
   linkedStories: string;
   codeSnippets: Array<{
+    nodeId?: string;
     title: string;
     content: string;
     language: string;
