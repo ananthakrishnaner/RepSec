@@ -273,29 +273,12 @@ export const ReportBuilder: React.FC = () => {
       attachments: []
     });
     
-    // Reset nodes and edges to initial state
-    setNodes(initialNodes);
-    setEdges(initialEdges);
+    // Clear ALL nodes and edges - completely empty canvas
+    setNodes([]);
+    setEdges([]);
     
-    // Force re-render of nodes by updating their data
-    setTimeout(() => {
-      setNodes(currentNodes => 
-        currentNodes.map(node => ({
-          ...node,
-          data: {
-            ...node.data,
-            value: '',
-            content: '',
-            title: '',
-            language: 'javascript',
-            testCases: [],
-            linkedStories: [],
-            changeDescription: '',
-            files: []
-          }
-        }))
-      );
-    }, 100);
+    // Reset ID counter
+    id = 0;
   };
 
   let id = 0;
