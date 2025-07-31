@@ -29,30 +29,10 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
   const [label, setLabel] = useState(data.label || 'Text Input');
 
   const handleValueChange = (newValue: string) => {
-    appLogger.info('🎯 TextInputNode handleValueChange TRIGGERED', { nodeId: id, value: newValue, fieldType: data.fieldType });
-    
-    // Update local state first
     setValue(newValue);
-    
-    // Then call updateNodeData if available
     if (updateNodeData) {
-      appLogger.info('✅ About to call updateNodeData', { nodeId: id, field: 'value', value: newValue, fieldType: data.fieldType });
-      
-      // Call updateNodeData immediately
       updateNodeData(id, 'value', newValue);
-      
-      appLogger.info('✅ updateNodeData called successfully');
-    } else {
-      appLogger.error('❌ updateNodeData is not available!', { nodeId: id, fieldType: data.fieldType });
     }
-  };
-
-  // Test function to bypass React Flow
-  const testUpdate = () => {
-    appLogger.info('🧪 TEST UPDATE BUTTON CLICKED', { nodeId: id, fieldType: data.fieldType });
-    const testValue = 'Test content from ' + (data.fieldType || id) + ' at ' + new Date().toLocaleTimeString();
-    appLogger.info('🧪 Setting test value', { testValue });
-    handleValueChange(testValue);
   };
 
   // Sync with external data changes and ensure value persists
@@ -119,14 +99,6 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
           <Label htmlFor={`${id}-value`} className="text-xs font-medium text-muted-foreground">
             Content
           </Label>
-          <Button 
-            onClick={testUpdate} 
-            size="sm" 
-            variant="outline" 
-            className="w-full mb-2 text-xs"
-          >
-            🧪 Test Update (Click to test data flow)
-          </Button>
           {multiline ? (
             <Textarea
               id={`${id}-value`}

@@ -48,9 +48,6 @@ export const ReportBuilder: React.FC = () => {
   
   // Add tab change logging
   const handleTabChange = (newTab: string) => {
-    appLogger.info('🔄 Tab changing', { from: activeTab, to: newTab });
-    appLogger.debug('📊 Current report data before tab change', reportData);
-    appLogger.debug('📊 Current preview data before tab change', previewData);
     setActiveTab(newTab);
   };
   
@@ -89,29 +86,7 @@ export const ReportBuilder: React.FC = () => {
 
   // Function to collect data from nodes and update preview
   const updatePreviewFromBuilder = () => {
-    appLogger.info('🖼️ SHOW PREVIEW CLICKED - Starting preview update');
-    appLogger.info('📊 Current reportData (BEFORE copying to preview):', reportData);
-    appLogger.debug('📊 Current nodes in builder:', nodes.map(n => ({ id: n.id, type: n.type, data: n.data })));
-    
-    // Check if reportData has any content
-    const hasContent = Object.values(reportData).some(value => 
-      Array.isArray(value) ? value.length > 0 : Boolean(value)
-    );
-    
-    appLogger.info(`📋 ReportData has content: ${hasContent}`);
-    appLogger.info(`📋 Specific check - projectName: "${reportData.projectName}"`);
-    
-    // Copy current builder data to preview
-    const newPreviewData = { ...reportData };
-    setPreviewData(newPreviewData);
-    
-    appLogger.info('✅ setPreviewData called with:', newPreviewData);
-    appLogger.info('🎯 Preview update should be complete');
-    
-    // Log after a brief delay to see if state updated
-    setTimeout(() => {
-      appLogger.info('⏰ Delayed check - preview should now have:', newPreviewData);
-    }, 100);
+    setPreviewData({ ...reportData });
   };
 
   // Standard nodes initialization - moved up to avoid "used before declaration" error
@@ -238,8 +213,6 @@ export const ReportBuilder: React.FC = () => {
 
   // Clear all data function - completely empty everything
   const clearAllData = () => {
-    appLogger.info('🧹 COMPREHENSIVE CLEAR: Clearing all report data and nodes');
-    
     const emptyData = {
       projectName: '',
       scope: '',
@@ -251,21 +224,11 @@ export const ReportBuilder: React.FC = () => {
       attachments: [],
     };
     
-    // Clear all state completely
     setReportData(emptyData);
     setPreviewData(emptyData);
-    
-    // Create completely empty nodes array - no initial nodes at all
     setNodes([]);
     setEdges([]);
-    
-    // Force re-render by going back to builder tab
     setActiveTab('builder');
-    
-    appLogger.info('✅ EVERYTHING CLEARED - all data, all nodes, all edges removed');
-    appLogger.debug('📊 Nodes count after clear:', 0);
-    appLogger.debug('📊 ReportData after clear:', emptyData);
-    appLogger.debug('📊 PreviewData after clear:', emptyData);
   };
 
   const exportMarkdown = useCallback(() => {
@@ -310,17 +273,6 @@ export const ReportBuilder: React.FC = () => {
           </div>
           
           <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3 flex-shrink-0">
-            <LogViewer />
-            <Button 
-              onClick={() => {
-                appLogger.info('🧪 QUICK TEST: Setting project name directly');
-                updateReportData({ projectName: 'TEST PROJECT NAME FROM BUTTON' });
-              }}
-              variant="outline"
-              className="w-full bg-gradient-to-r from-blue-500/10 to-blue-500/5 hover:from-blue-500/20 hover:to-blue-500/10 border-blue-500/30 hover:border-blue-500/50 text-blue-600 hover:text-blue-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
-            >
-              🧪 Quick Test (Direct Update)
-            </Button>
             <Button 
               onClick={clearAllData}
               variant="outline"
@@ -330,12 +282,11 @@ export const ReportBuilder: React.FC = () => {
             </Button>
             <Button 
               onClick={() => {
-                appLogger.info('🖼️ Show Preview clicked - updating preview and switching tabs');
                 updatePreviewFromBuilder();
                 setTimeout(() => {
                   handleTabChange('preview');
-                }, 100); // Small delay to ensure state update completes
-              }}
+                }, 100);
+              }} 
               variant="outline"
               className="w-full bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 border-primary/30 hover:border-primary/50 text-primary hover:text-primary/90 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
             >
