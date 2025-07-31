@@ -66,13 +66,13 @@ export const ReportBuilder: React.FC = () => {
 
   const updateReportData = useCallback((updates: Partial<ReportData>) => {
     appLogger.info('📊 updateReportData called', updates);
-    appLogger.debug('📊 Current state before update', reportData);
     setReportData((prev) => {
+      appLogger.debug('📊 Current state before update', prev);
       const newData = { ...prev, ...updates };
       appLogger.info('📋 New report data state', newData);
       return newData;
     });
-  }, [reportData]);
+  }, []); // Remove reportData dependency to prevent infinite loop
 
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
     appLogger.debug('🔄 Node data update', { nodeId, field, value });
@@ -114,7 +114,7 @@ export const ReportBuilder: React.FC = () => {
     );
   }, [setNodes]);
 
-  // Update the updateNodeData to use the new function
+  // Update the updateNodeData to use the new function - fix dependency to prevent render loop
   React.useEffect(() => {
     const combinedUpdateFunction = (nodeId: string, field: string, value: any) => {
       updateNodeData(nodeId, field, value);
@@ -127,7 +127,7 @@ export const ReportBuilder: React.FC = () => {
         data: { ...node.data, updateNodeData: combinedUpdateFunction }
       }))
     );
-  }, [updateNodeData, updateNodeInState, setNodes]);
+  }, []); // Remove dependencies that cause render loop
 
   // Create node types that use updateNodeData from data prop
   const nodeTypes = {
@@ -201,9 +201,12 @@ export const ReportBuilder: React.FC = () => {
     appLogger.info('📊 Setting test data', testData);
     setReportData(testData);
     
-    // Force re-render check
+    // Force re-render check with proper state access
     setTimeout(() => {
-      appLogger.debug('📊 ReportData after test (delayed check)', reportData);
+      setReportData(current => {
+        appLogger.debug('📊 ReportData after test (delayed check)', current);
+        return current;
+      });
     }, 100);
   };
 
