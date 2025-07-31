@@ -193,32 +193,22 @@ export const ReportBuilder: React.FC = () => {
     [setNodes, updateNodeData, updateNodeInState]
   );
 
-  // TEMPORARY: Add a direct test of data flow
-  const testDataFlow = () => {
-    appLogger.info('🧪 DIRECT TEST: Setting test data - BEFORE UPDATE');
-    appLogger.debug('📊 Current reportData before test', reportData);
-    
-    const testData = {
-      projectName: 'TEST PROJECT NAME',
-      scope: 'TEST SCOPE CONTENT',
-      baselines: 'TEST BASELINES',
+  // Clear all data function
+  const clearAllData = () => {
+    appLogger.info('🧹 Clearing all report data');
+    setReportData({
+      projectName: '',
+      scope: '',
+      baselines: '',
       testCases: [],
-      changeDescription: 'TEST CHANGE DESCRIPTION',
-      linkedStories: 'TEST LINKED STORIES',
+      changeDescription: '',
+      linkedStories: '',
       codeSnippets: [],
-      attachments: []
-    };
-    
-    appLogger.info('📊 Setting test data', testData);
-    setReportData(testData);
-    
-    // Force re-render check with proper state access
-    setTimeout(() => {
-      setReportData(current => {
-        appLogger.debug('📊 ReportData after test (delayed check)', current);
-        return current;
-      });
-    }, 100);
+      attachments: [],
+    });
+    // Also clear all nodes except initial ones
+    setNodes(initialNodes);
+    setEdges(initialEdges);
   };
 
   const exportMarkdown = useCallback(() => {
@@ -266,11 +256,11 @@ export const ReportBuilder: React.FC = () => {
           <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3 flex-shrink-0">
             <LogViewer />
             <Button 
-              onClick={testDataFlow}
+              onClick={clearAllData}
               variant="outline"
-              className="w-full bg-gradient-to-r from-green-500/10 to-green-500/5 hover:from-green-500/20 hover:to-green-500/10 border-green-500/30 hover:border-green-500/50 text-green-600 hover:text-green-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
+              className="w-full bg-gradient-to-r from-red-500/10 to-red-500/5 hover:from-red-500/20 hover:to-red-500/10 border-red-500/30 hover:border-red-500/50 text-red-600 hover:text-red-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
             >
-              🧪 Test Data Flow
+              🧹 Clear All Data
             </Button>
             <Button 
               onClick={() => handleTabChange('preview')} 
