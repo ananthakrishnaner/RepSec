@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Edge, Node, Background, Controls, MiniMap } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Card } from '@/components/ui/card';
@@ -102,10 +102,16 @@ export const ReportBuilder: React.FC = () => {
   );
 
   const updateReportData = useCallback((updates: Partial<ReportData>) => {
-    setReportData((prev) => ({ ...prev, ...updates }));
+    console.log('Updating report data:', updates);
+    setReportData((prev) => {
+      const newData = { ...prev, ...updates };
+      console.log('New report data:', newData);
+      return newData;
+    });
   }, []);
 
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
+    console.log('updateNodeData called:', nodeId, field, value);
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
@@ -139,7 +145,8 @@ export const ReportBuilder: React.FC = () => {
     );
   }, [updateReportData, setNodes]);
 
-  const nodeTypes = createNodeTypes(updateNodeData);
+  // Memoize nodeTypes to prevent React Flow warnings
+  const nodeTypes = useMemo(() => createNodeTypes(updateNodeData), [updateNodeData]);
 
   const exportMarkdown = useCallback(() => {
     // Generate markdown content
