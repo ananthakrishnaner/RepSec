@@ -238,12 +238,12 @@ export const ReportBuilder: React.FC = () => {
     <div className="h-screen bg-gradient-to-br from-background via-background to-card overflow-hidden">
       <div className="flex h-full">
         {/* Sidebar with component toolbar */}
-        <div className="w-80 border-r border-border/50 bg-gradient-to-b from-background via-card/30 to-primary/5 backdrop-blur-xl relative overflow-hidden">
+        <div className="w-80 border-r border-border/50 bg-gradient-to-b from-background via-card/30 to-primary/5 backdrop-blur-xl relative overflow-hidden flex flex-col h-full">
           {/* Animated background elements */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/3 to-transparent animate-pulse"></div>
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl animate-bounce"></div>
           
-          <div className="relative z-10 p-6 border-b border-border/30 bg-gradient-to-r from-background/80 to-primary/5 backdrop-blur-sm">
+          <div className="relative z-10 p-6 border-b border-border/30 bg-gradient-to-r from-background/80 to-primary/5 backdrop-blur-sm flex-shrink-0">
             <h2 className="text-xl font-bold bg-gradient-to-r from-primary via-primary/80 to-accent-foreground bg-clip-text text-transparent mb-2 animate-fade-in">
               Security Report Builder
             </h2>
@@ -256,8 +256,14 @@ export const ReportBuilder: React.FC = () => {
               <div className="w-2 h-2 bg-primary/30 rounded-full animate-pulse delay-150"></div>
             </div>
           </div>
-          <ComponentToolbar />
-          <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3">
+          
+          {/* Scrollable component toolbar area */}
+          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+            <ComponentToolbar />
+          </div>
+          
+          {/* Fixed bottom action buttons */}
+          <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3 flex-shrink-0">
             <LogViewer />
             <Button 
               onClick={testDataFlow}

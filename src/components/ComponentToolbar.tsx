@@ -88,7 +88,7 @@ export const ComponentToolbar: React.FC = () => {
         <div className="flex-1 h-px bg-gradient-to-r from-border/50 to-transparent"></div>
       </h3>
       
-      <div className="space-y-3">
+      <div className="space-y-3 pb-4">
         {components.map((component, index) => {
           const Icon = component.icon;
           return (
