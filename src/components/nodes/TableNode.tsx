@@ -96,10 +96,12 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
 
   // Handle screenshot upload for evidence
   const handleEvidenceUpload = (testCaseIndex: number, files: FileList) => {
+    console.log('Files selected:', files.length); // Debug log
     const screenshots: string[] = [];
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
+      console.log('Processing file:', file.name); // Debug log
       
       // Check if it's an image
       if (!file.type.startsWith('image/')) {
@@ -124,6 +126,8 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
       screenshots.push(`./evidence/${file.name}`);
     }
 
+    console.log('Screenshots array:', screenshots); // Debug log
+
     if (screenshots.length > 0) {
       // Update the evidence field with new screenshot paths
       const currentEvidence = testCases[testCaseIndex].evidence;
@@ -131,11 +135,16 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
       const allScreenshots = [...existingScreenshots, ...screenshots];
       const evidenceString = allScreenshots.join(', ');
       
+      console.log('Current evidence:', currentEvidence); // Debug log
+      console.log('Existing screenshots:', existingScreenshots); // Debug log
+      console.log('All screenshots:', allScreenshots); // Debug log
+      console.log('Final evidence string:', evidenceString); // Debug log
+      
       updateTestCase(testCaseIndex, 'evidence', evidenceString);
       
       toast({
         title: "Screenshots uploaded",
-        description: `${screenshots.length} screenshot(s) added to evidence folder.`,
+        description: `${screenshots.length} screenshot(s) added to evidence folder. Total paths: ${allScreenshots.length}`,
       });
     }
   };
@@ -316,8 +325,15 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
                         ref={(el) => fileInputRefs.current[index] = el}
                         type="file"
                         multiple
-                        accept="image/*"
-                        onChange={(e) => e.target.files && handleEvidenceUpload(index, e.target.files)}
+                        accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                        onChange={(e) => {
+                          console.log('File input changed, files:', e.target.files?.length);
+                          if (e.target.files && e.target.files.length > 0) {
+                            handleEvidenceUpload(index, e.target.files);
+                            // Reset the input so the same files can be selected again if needed
+                            e.target.value = '';
+                          }
+                        }}
                         className="hidden"
                       />
                     </div>
