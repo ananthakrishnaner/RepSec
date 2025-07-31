@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ReportPreview } from './ReportPreview';
-import { MarkdownEditor } from './MarkdownEditor';
+
 import { ComponentToolbar } from './ComponentToolbar';
 import { TextInputNode } from './nodes/TextInputNode';
 import { TableNode } from './nodes/TableNode';
@@ -266,18 +266,6 @@ export const ReportBuilder: React.FC = () => {
     debugLogger.success('CLEAR_DATA', 'All data cleared successfully');
   };
 
-  const exportMarkdown = useCallback(() => {
-    const markdown = generateMarkdownReport(reportData);
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${reportData.projectName || 'security-report'}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, [reportData]);
 
   return (
     <div className="h-screen bg-gradient-to-br from-background via-background to-card overflow-hidden">
@@ -334,15 +322,6 @@ export const ReportBuilder: React.FC = () => {
               </svg>
               Show Preview
             </Button>
-            <Button 
-              onClick={exportMarkdown} 
-              className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-lg hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 transform hover:scale-105 font-medium"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Export Markdown
-            </Button>
           </div>
         </div>
 
@@ -369,15 +348,6 @@ export const ReportBuilder: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                   Live Preview
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="markdown"
-                  className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-md transition-all duration-300 font-medium px-6 py-3 rounded-lg"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
-                  Markdown Code
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -422,53 +392,9 @@ export const ReportBuilder: React.FC = () => {
               <ReportPreview reportData={previewData} />
             </TabsContent>
 
-            <TabsContent value="markdown" className="flex-1 m-0 p-0 animate-fade-in">
-              <MarkdownEditor reportData={previewData} onUpdateMarkdown={setPreviewData} />
-            </TabsContent>
           </Tabs>
         </div>
       </div>
     </div>
   );
-};
-
-const generateMarkdownReport = (data: ReportData): string => {
-  return `# ${data.projectName || 'Security Testing Report'}
-
-## Scope of Work
-${data.scope || 'No scope defined'}
-
-## Baselines for Review
-${data.baselines || 'No baselines defined'}
-
-## Test Cases
-
-| ID | Test Case | Category | Exploited | URL Reference | Evidence Path | Remediation Status | Tester Name |
-|----|-----------|----------|-----------|---------------|---------------|-------------------|-------------|
-${data.testCases.map(tc => 
-  `| ${tc.id} | ${tc.testCase} | ${tc.category} | ${tc.exploited} | ${tc.url} | ${tc.evidence} | ${tc.remediation} | ${tc.tester} |`
-).join('\n')}
-
-## Change Description & Linked Stories
-${data.changeDescription || 'No changes described'}
-
-**Linked Stories:** ${data.linkedStories || 'None'}
-
-## Code Snippets
-
-${data.codeSnippets.map(snippet => `
-### ${snippet.title}
-
-\`\`\`${snippet.language}
-${snippet.content}
-\`\`\`
-`).join('\n')}
-
-## Attachments
-
-${data.attachments.map(att => `- [${att.name}](${att.url}) (${att.type})`).join('\n')}
-
----
-*Report generated on ${new Date().toLocaleDateString()}*
-`;
 };

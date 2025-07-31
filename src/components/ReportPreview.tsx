@@ -1,10 +1,6 @@
 import React from 'react';
 import { debugLogger } from './DebugLogger';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import 'highlight.js/styles/github.css';
 
 interface ReportData {
   projectName: string;
@@ -71,66 +67,152 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
       timestamp: new Date().toISOString()
     });
   }, [reportData, hasData]);
-  const generateMarkdown = (): string => {
-    debugLogger.debug('MARKDOWN_GEN', 'Generating markdown from data', reportData);
+  const renderContent = () => {
+    debugLogger.debug('CONTENT_RENDER', 'Rendering content from data', reportData);
     
-    let markdown = '';
+    const sections = [];
 
     // Only add content if it actually exists - no placeholders
     if (reportData.projectName) {
-      markdown += `# ${reportData.projectName}\n\n`;
-      debugLogger.debug('MARKDOWN_GEN', 'Added project name to markdown');
+      sections.push(
+        <h1 key="title" className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-6">
+          {reportData.projectName}
+        </h1>
+      );
+      debugLogger.debug('CONTENT_RENDER', 'Added project name to content');
     }
 
     if (reportData.scope) {
-      markdown += `## Scope of Work\n${reportData.scope}\n\n`;
-      debugLogger.debug('MARKDOWN_GEN', 'Added scope to markdown');
+      sections.push(
+        <div key="scope" className="mb-8">
+          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
+            Scope of Work
+          </h2>
+          <p className="text-muted-foreground">{reportData.scope}</p>
+        </div>
+      );
+      debugLogger.debug('CONTENT_RENDER', 'Added scope to content');
     }
 
     if (reportData.baselines) {
-      markdown += `## Baselines for Review\n${reportData.baselines}\n\n`;
-      debugLogger.debug('MARKDOWN_GEN', 'Added baselines to markdown');
+      sections.push(
+        <div key="baselines" className="mb-8">
+          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
+            Baselines for Review
+          </h2>
+          <p className="text-muted-foreground">{reportData.baselines}</p>
+        </div>
+      );
+      debugLogger.debug('CONTENT_RENDER', 'Added baselines to content');
     }
 
     if (reportData.testCases.length > 0) {
-      markdown += `## Test Cases\n\n| ID | Test Case | Category | Exploited | URL Reference | Evidence Path | Remediation Status | Tester Name |\n|----|-----------|----------|-----------|---------------|---------------|-------------------|-------------|\n`;
-      markdown += reportData.testCases.map(tc => 
-        `| ${tc.id} | ${tc.testCase} | ${tc.category} | ${tc.exploited} | ${tc.url} | ${tc.evidence} | ${tc.remediation} | ${tc.tester} |`
-      ).join('\n') + '\n\n';
+      sections.push(
+        <div key="testcases" className="mb-8">
+          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
+            Test Cases
+          </h2>
+          <div className="overflow-x-auto my-6">
+            <table className="min-w-full border-collapse border border-border rounded-lg overflow-hidden shadow-sm">
+              <thead>
+                <tr>
+                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">ID</th>
+                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Test Case</th>
+                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Category</th>
+                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Exploited</th>
+                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">URL Reference</th>
+                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Evidence Path</th>
+                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Remediation Status</th>
+                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Tester Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reportData.testCases.map((tc, index) => (
+                  <tr key={index}>
+                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.id}</td>
+                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.testCase}</td>
+                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.category}</td>
+                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.exploited}</td>
+                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.url}</td>
+                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.evidence}</td>
+                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.remediation}</td>
+                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.tester}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
     }
 
     if (reportData.changeDescription || reportData.linkedStories) {
-      markdown += `## Change Description & Linked Stories\n`;
-      if (reportData.changeDescription) {
-        markdown += `${reportData.changeDescription}\n\n`;
-      }
-      if (reportData.linkedStories) {
-        markdown += `**Linked Stories:** ${reportData.linkedStories}\n\n`;
-      }
+      sections.push(
+        <div key="changes" className="mb-8">
+          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
+            Change Description & Linked Stories
+          </h2>
+          {reportData.changeDescription && (
+            <p className="text-muted-foreground mb-4">{reportData.changeDescription}</p>
+          )}
+          {reportData.linkedStories && (
+            <p className="text-muted-foreground"><strong>Linked Stories:</strong> {reportData.linkedStories}</p>
+          )}
+        </div>
+      );
     }
 
     if (reportData.codeSnippets.length > 0) {
-      markdown += `## Code Snippets\n\n`;
-      markdown += reportData.codeSnippets.map(snippet => `### ${snippet.title}\n\n\`\`\`${snippet.language}\n${snippet.content}\n\`\`\`\n`).join('\n') + '\n';
+      sections.push(
+        <div key="codesnippets" className="mb-8">
+          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
+            Code Snippets
+          </h2>
+          {reportData.codeSnippets.map((snippet, index) => (
+            <div key={index} className="mb-6">
+              <h3 className="text-xl font-medium text-foreground mt-6 mb-3">{snippet.title}</h3>
+              <pre className="bg-gradient-to-br from-muted/50 to-accent/30 p-6 rounded-lg overflow-x-auto border border-border shadow-inner my-4">
+                <code className="text-sm">{snippet.content}</code>
+              </pre>
+            </div>
+          ))}
+        </div>
+      );
     }
 
     if (reportData.attachments.length > 0) {
-      markdown += `## Attachments\n\n`;
-      markdown += reportData.attachments.map(att => `- [${att.name}](${att.url}) (${att.type})`).join('\n') + '\n\n';
+      sections.push(
+        <div key="attachments" className="mb-8">
+          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
+            Attachments
+          </h2>
+          <ul className="list-disc list-inside space-y-2 my-4 text-muted-foreground">
+            {reportData.attachments.map((att, index) => (
+              <li key={index} className="hover:text-foreground transition-colors duration-200">
+                <a href={att.url} className="text-primary hover:underline">{att.name}</a> ({att.type})
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
     }
 
     // If there's no content, show empty state
-    if (!markdown.trim()) {
-      debugLogger.warn('MARKDOWN_GEN', 'No content generated - returning empty state');
-      return '';
+    if (sections.length === 0) {
+      debugLogger.warn('CONTENT_RENDER', 'No content generated - showing empty state');
+      return (
+        <div className="text-center text-muted-foreground py-12">
+          <p className="text-lg font-medium mb-2">Your report preview will appear here</p>
+          <p className="text-sm">Drag components from the sidebar and fill them out to see your content</p>
+        </div>
+      );
     }
 
-    debugLogger.success('MARKDOWN_GEN', 'Markdown generated successfully', { 
-      length: markdown.length, 
-      hasContent: !!markdown.trim() 
+    debugLogger.success('CONTENT_RENDER', 'Content rendered successfully', { 
+      sectionCount: sections.length 
     });
     
-    return markdown;
+    return sections;
   };
 
   return (
@@ -147,89 +229,8 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
       <ScrollArea className="flex-1 h-[calc(100vh-8rem)]">
         <div className="max-w-4xl mx-auto p-6">
           <div className="bg-card/50 backdrop-blur-sm rounded-lg border border-border p-8 shadow-lg min-h-[200px]">
-            <div className="prose prose-slate dark:prose-invert max-w-none">
-              {generateMarkdown() ? (
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeHighlight]}
-                  components={{
-                    h1: ({ children }) => (
-                      <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-6">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
-                        {children}
-                      </h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-xl font-medium text-foreground mt-6 mb-3">
-                        {children}
-                      </h3>
-                    ),
-                    table: ({ children }) => (
-                      <div className="overflow-x-auto my-6">
-                        <table className="min-w-full border-collapse border border-border rounded-lg overflow-hidden shadow-sm">
-                          {children}
-                        </table>
-                      </div>
-                    ),
-                    th: ({ children }) => (
-                      <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">
-                        {children}
-                      </th>
-                    ),
-                    td: ({ children }) => (
-                      <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">
-                        {children}
-                      </td>
-                    ),
-                    code: ({ children, className }) => {
-                      const isInline = !className;
-                      if (isInline) {
-                        return (
-                          <code className="bg-primary/10 text-primary px-2 py-1 rounded text-sm font-mono border border-primary/20">
-                            {children}
-                          </code>
-                        );
-                      }
-                      return (
-                        <code className={className}>
-                          {children}
-                        </code>
-                      );
-                    },
-                    pre: ({ children }) => (
-                      <pre className="bg-gradient-to-br from-muted/50 to-accent/30 p-6 rounded-lg overflow-x-auto border border-border shadow-inner my-4">
-                        {children}
-                      </pre>
-                    ),
-                    blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-primary pl-6 my-6 italic text-muted-foreground bg-primary/5 py-4 rounded-r-lg">
-                        {children}
-                      </blockquote>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="list-disc list-inside space-y-2 my-4 text-muted-foreground">
-                        {children}
-                      </ul>
-                    ),
-                    li: ({ children }) => (
-                      <li className="hover:text-foreground transition-colors duration-200">
-                        {children}
-                      </li>
-                    ),
-                  }}
-                >
-                  {generateMarkdown()}
-                </ReactMarkdown>
-              ) : (
-                <div className="text-center text-muted-foreground py-12">
-                  <p className="text-lg font-medium mb-2">Your report preview will appear here</p>
-                  <p className="text-sm">Drag components from the sidebar and fill them out to see your content</p>
-                </div>
-              )}
+            <div className="max-w-none">
+              {renderContent()}
             </div>
           </div>
         </div>
