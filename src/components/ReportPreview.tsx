@@ -39,8 +39,7 @@ interface ReportPreviewProps {
 }
 
 export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
-  appLogger.info('🖼️ ReportPreview render - received data', reportData);
-  appLogger.debug('🖼️ Data object keys', Object.keys(reportData));
+  console.log('🖼️ PREVIEW COMPONENT: Received data:', reportData);
   
   // Check if we have any meaningful data
   const hasData = reportData.projectName || 
@@ -52,7 +51,8 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
                  reportData.codeSnippets.length > 0 || 
                  reportData.attachments.length > 0;
 
-  appLogger.info(`🔍 Preview has meaningful data: ${hasData}`);
+  console.log('🔍 PREVIEW: Has meaningful data?', hasData);
+  console.log('🔍 PREVIEW: Project name specifically:', reportData.projectName);
   
   // Debug: Show what data we actually have
   React.useEffect(() => {

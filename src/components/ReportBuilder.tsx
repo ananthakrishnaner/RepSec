@@ -86,7 +86,9 @@ export const ReportBuilder: React.FC = () => {
 
   // Function to collect data from nodes and update preview
   const updatePreviewFromBuilder = () => {
+    console.log('🔍 SHOW PREVIEW: Current reportData:', reportData);
     setPreviewData({ ...reportData });
+    console.log('✅ SHOW PREVIEW: Preview data set to:', reportData);
   };
 
   // Standard nodes initialization - moved up to avoid "used before declaration" error
@@ -94,34 +96,31 @@ export const ReportBuilder: React.FC = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
-    appLogger.info('🔄 updateNodeData RECEIVED', { nodeId, field, value });
+    console.log('🔄 UPDATE NODE DATA: Called with', { nodeId, field, value });
     
-    // Update report data immediately for live preview
     if (field === 'value') {
-      // Get the node to check its data.fieldType
       const node = nodes.find(n => n.id === nodeId);
       const fieldType = node?.data?.fieldType;
       
-      appLogger.info('🔍 Field mapping attempt', { nodeId, fieldType, value, nodeFound: !!node });
+      console.log('🔍 FIELD MAPPING: Found fieldType:', fieldType);
       
       if (fieldType === 'projectName') {
-        appLogger.info('🏷️ UPDATING PROJECT NAME in reportData', { value });
+        console.log('🏷️ UPDATING PROJECT NAME:', value);
         updateReportData({ projectName: value });
-        appLogger.info('🏷️ PROJECT NAME UPDATE SENT');
       } else if (fieldType === 'scope') {
-        appLogger.info('🎯 UPDATING SCOPE in reportData', { value });
+        console.log('🎯 UPDATING SCOPE:', value);
         updateReportData({ scope: value });
       } else if (fieldType === 'baselines') {
-        appLogger.info('📋 UPDATING BASELINES in reportData', { value });
+        console.log('📋 UPDATING BASELINES:', value);
         updateReportData({ baselines: value });
       } else if (fieldType === 'changeDescription') {
-        appLogger.info('🔄 UPDATING CHANGE DESCRIPTION in reportData', { value });
+        console.log('🔄 UPDATING CHANGE DESCRIPTION:', value);
         updateReportData({ changeDescription: value });
       } else if (fieldType === 'linkedStories') {
-        appLogger.info('📖 UPDATING LINKED STORIES in reportData', { value });
+        console.log('📖 UPDATING LINKED STORIES:', value);
         updateReportData({ linkedStories: value });
       } else {
-        appLogger.error('❌ FIELD TYPE NOT RECOGNIZED', { nodeId, fieldType, value, availableNodes: nodes.map(n => ({id: n.id, fieldType: n.data?.fieldType})) });
+        console.log('❌ UNKNOWN FIELD TYPE:', fieldType);
       }
     }
   }, [updateReportData, nodes]);
