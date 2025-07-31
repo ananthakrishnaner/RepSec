@@ -300,9 +300,18 @@ export const ReportBuilder: React.FC = () => {
             <ComponentToolbar />
           </div>
           
-          {/* Fixed bottom action buttons */}
           <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3 flex-shrink-0">
             <LogViewer />
+            <Button 
+              onClick={() => {
+                appLogger.info('🧪 QUICK TEST: Setting project name directly');
+                updateReportData({ projectName: 'TEST PROJECT NAME FROM BUTTON' });
+              }}
+              variant="outline"
+              className="w-full bg-gradient-to-r from-blue-500/10 to-blue-500/5 hover:from-blue-500/20 hover:to-blue-500/10 border-blue-500/30 hover:border-blue-500/50 text-blue-600 hover:text-blue-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
+            >
+              🧪 Quick Test (Direct Update)
+            </Button>
             <Button 
               onClick={clearAllData}
               variant="outline"

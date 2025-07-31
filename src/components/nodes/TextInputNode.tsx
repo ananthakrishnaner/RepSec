@@ -125,16 +125,13 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               value={value}
               onChange={(e) => {
                 e.stopPropagation(); 
-                e.preventDefault();
                 const newValue = e.target.value;
-                appLogger.debug('📝 TEXTAREA CHANGE EVENT', { nodeId: id, value: newValue });
+                appLogger.info('📝 TEXTAREA CHANGE EVENT', { nodeId: id, value: newValue, fieldType: data.fieldType });
                 handleValueChange(newValue);
               }}
-              onInput={(e) => {
+              onFocus={(e) => {
                 e.stopPropagation();
-                const newValue = (e.target as HTMLTextAreaElement).value;
-                appLogger.debug('📝 TEXTAREA INPUT EVENT', { nodeId: id, value: newValue });
-                handleValueChange(newValue);
+                appLogger.debug('🎯 Textarea focused', { nodeId: id });
               }}
               onMouseDown={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
@@ -148,16 +145,13 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               value={value}
               onChange={(e) => {
                 e.stopPropagation();
-                e.preventDefault();
                 const newValue = e.target.value;
-                appLogger.debug('📝 INPUT CHANGE EVENT', { nodeId: id, value: newValue });
+                appLogger.info('📝 INPUT CHANGE EVENT', { nodeId: id, value: newValue, fieldType: data.fieldType });
                 handleValueChange(newValue);
               }}
-              onInput={(e) => {
+              onFocus={(e) => {
                 e.stopPropagation();
-                const newValue = (e.target as HTMLInputElement).value;
-                appLogger.debug('📝 INPUT INPUT EVENT', { nodeId: id, value: newValue });
-                handleValueChange(newValue);
+                appLogger.debug('🎯 Input focused', { nodeId: id });
               }}
               onMouseDown={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
