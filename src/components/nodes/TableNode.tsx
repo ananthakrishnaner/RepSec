@@ -86,7 +86,7 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
         </Button>
       </div>
 
-      <div className="h-96 overflow-auto">
+      <div className="h-96 overflow-auto border border-border rounded-md scrollbar-visible">
         <div className="space-y-4 pr-4 min-w-[1200px]">
           {testCases.map((testCase, index) => (
             <div key={index} className="border border-border rounded">
