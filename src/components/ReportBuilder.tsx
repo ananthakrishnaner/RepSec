@@ -180,6 +180,21 @@ export const ReportBuilder: React.FC = () => {
     [setNodes, updateNodeData, updateNodeInState]
   );
 
+  // TEMPORARY: Add a direct test of data flow
+  const testDataFlow = () => {
+    console.log('🧪 DIRECT TEST: Setting test data');
+    setReportData({
+      projectName: 'TEST PROJECT NAME',
+      scope: 'TEST SCOPE CONTENT',
+      baselines: 'TEST BASELINES',
+      testCases: [],
+      changeDescription: 'TEST CHANGE DESCRIPTION',
+      linkedStories: 'TEST LINKED STORIES',
+      codeSnippets: [],
+      attachments: []
+    });
+  };
+
   const exportMarkdown = useCallback(() => {
     const markdown = generateMarkdownReport(reportData);
     const blob = new Blob([markdown], { type: 'text/markdown' });
@@ -217,6 +232,13 @@ export const ReportBuilder: React.FC = () => {
           </div>
           <ComponentToolbar />
           <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3">
+            <Button 
+              onClick={testDataFlow}
+              variant="outline"
+              className="w-full bg-gradient-to-r from-green-500/10 to-green-500/5 hover:from-green-500/20 hover:to-green-500/10 border-green-500/30 hover:border-green-500/50 text-green-600 hover:text-green-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
+            >
+              🧪 Test Data Flow
+            </Button>
             <Button 
               onClick={() => handleTabChange('preview')} 
               variant="outline"

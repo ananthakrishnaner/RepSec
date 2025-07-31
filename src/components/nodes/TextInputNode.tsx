@@ -120,28 +120,46 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
               id={`${id}-value`}
               value={value}
               onChange={(e) => {
-                e.stopPropagation(); // Prevent React Flow from intercepting
-                console.log('Textarea onChange triggered:', e.target.value);
-                handleValueChange(e.target.value);
+                e.stopPropagation(); 
+                e.preventDefault();
+                const newValue = e.target.value;
+                console.log('📝 TEXTAREA CHANGE EVENT:', newValue);
+                handleValueChange(newValue);
               }}
-              onMouseDown={(e) => e.stopPropagation()} // Prevent drag interference
-              onKeyDown={(e) => e.stopPropagation()} // Prevent key interference
+              onInput={(e) => {
+                e.stopPropagation();
+                const newValue = (e.target as HTMLTextAreaElement).value;
+                console.log('📝 TEXTAREA INPUT EVENT:', newValue);
+                handleValueChange(newValue);
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
               placeholder={placeholder}
               className="modern-input min-h-20 resize-none nodrag nopan"
+              style={{ pointerEvents: 'auto' }}
             />
           ) : (
             <Input
               id={`${id}-value`}
               value={value}
               onChange={(e) => {
-                e.stopPropagation(); // Prevent React Flow from intercepting
-                console.log('Input onChange triggered:', e.target.value);
-                handleValueChange(e.target.value);
+                e.stopPropagation();
+                e.preventDefault();
+                const newValue = e.target.value;
+                console.log('📝 INPUT CHANGE EVENT:', newValue);
+                handleValueChange(newValue);
               }}
-              onMouseDown={(e) => e.stopPropagation()} // Prevent drag interference
-              onKeyDown={(e) => e.stopPropagation()} // Prevent key interference
+              onInput={(e) => {
+                e.stopPropagation();
+                const newValue = (e.target as HTMLInputElement).value;
+                console.log('📝 INPUT INPUT EVENT:', newValue);
+                handleValueChange(newValue);
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
               placeholder={placeholder}
               className="modern-input nodrag nopan"
+              style={{ pointerEvents: 'auto' }}
             />
           )}
         </div>
