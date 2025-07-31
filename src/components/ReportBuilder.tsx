@@ -212,12 +212,16 @@ export const ReportBuilder: React.FC = () => {
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
+      console.log('Drop event triggered');
 
       const reactFlowBounds = event.currentTarget.getBoundingClientRect();
       const type = event.dataTransfer.getData('application/reactflow');
       const fieldType = event.dataTransfer.getData('application/fieldtype');
 
+      console.log('Drop data - type:', type, 'fieldType:', fieldType);
+
       if (typeof type === 'undefined' || !type) {
+        console.log('No valid type found, dropping failed');
         return;
       }
 
@@ -225,6 +229,8 @@ export const ReportBuilder: React.FC = () => {
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
       };
+
+      console.log('Drop position:', position);
 
       const combinedUpdateFunction = (nodeId: string, field: string, value: any) => {
         updateNodeData(nodeId, field, value);
@@ -246,7 +252,12 @@ export const ReportBuilder: React.FC = () => {
         },
       };
 
-      setNodes((nds) => nds.concat(newNode));
+      console.log('Creating new node:', newNode);
+      setNodes((nds) => {
+        const newNodes = nds.concat(newNode);
+        console.log('Total nodes after adding:', newNodes.length);
+        return newNodes;
+      });
     },
     [setNodes, updateNodeData, updateNodeInState]
   );

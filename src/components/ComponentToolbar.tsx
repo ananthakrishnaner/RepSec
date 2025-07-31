@@ -66,11 +66,16 @@ const components = [
 
 export const ComponentToolbar: React.FC = () => {
   const onDragStart = (event: React.DragEvent, nodeType: string, fieldType?: string) => {
+    console.log('Drag started:', nodeType, fieldType);
     event.dataTransfer.setData('application/reactflow', nodeType);
     if (fieldType) {
       event.dataTransfer.setData('application/fieldtype', fieldType);
     }
     event.dataTransfer.effectAllowed = 'move';
+  };
+
+  const onDragEnd = (event: React.DragEvent) => {
+    console.log('Drag ended');
   };
 
   return (
@@ -90,6 +95,7 @@ export const ComponentToolbar: React.FC = () => {
               className="component-card p-4 cursor-grab active:cursor-grabbing transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/10 group bg-gradient-to-r from-card/80 to-accent/20 border-border/50 backdrop-blur-sm animate-fade-in hover:border-primary/30"
               draggable
               onDragStart={(event) => onDragStart(event, component.type, component.fieldType)}
+              onDragEnd={onDragEnd}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-start gap-3">
