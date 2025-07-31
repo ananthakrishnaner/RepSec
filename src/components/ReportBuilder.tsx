@@ -54,6 +54,7 @@ interface ReportData {
 }
 
 export const ReportBuilder: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('builder');
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [reportData, setReportData] = useState<ReportData>({
@@ -204,7 +205,18 @@ export const ReportBuilder: React.FC = () => {
             </div>
           </div>
           <ComponentToolbar />
-          <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent">
+          <div className="relative z-10 p-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-transparent space-y-3">
+            <Button 
+              onClick={() => setActiveTab('preview')} 
+              variant="outline"
+              className="w-full bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 border-primary/30 hover:border-primary/50 text-primary hover:text-primary/90 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Show Preview
+            </Button>
             <Button 
               onClick={exportMarkdown} 
               className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-lg hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 transform hover:scale-105 font-medium"
@@ -219,7 +231,7 @@ export const ReportBuilder: React.FC = () => {
 
         {/* Main content area */}
         <div className="flex-1 flex flex-col bg-gradient-to-br from-background via-background/95 to-card/20">
-          <Tabs defaultValue="builder" className="h-full flex flex-col">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
             <div className="border-b border-border/30 bg-gradient-to-r from-background/90 via-card/30 to-background/90 backdrop-blur-sm">
               <TabsList className="h-14 px-6 bg-transparent gap-1">
                 <TabsTrigger 
