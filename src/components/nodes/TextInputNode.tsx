@@ -94,7 +94,10 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
             <Textarea
               id={`${id}-value`}
               value={value}
-              onChange={(e) => handleValueChange(e.target.value)}
+              onChange={(e) => {
+                console.log('Textarea onChange triggered:', e.target.value);
+                handleValueChange(e.target.value);
+              }}
               placeholder={placeholder}
               className="modern-input min-h-20 resize-none"
             />
@@ -102,7 +105,10 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
             <Input
               id={`${id}-value`}
               value={value}
-              onChange={(e) => handleValueChange(e.target.value)}
+              onChange={(e) => {
+                console.log('Input onChange triggered:', e.target.value);
+                handleValueChange(e.target.value);
+              }}
               placeholder={placeholder}
               className="modern-input"
             />
