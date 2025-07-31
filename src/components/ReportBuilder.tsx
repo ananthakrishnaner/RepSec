@@ -13,6 +13,7 @@ import { TableNode } from './nodes/TableNode';
 import { CodeSnippetNode } from './nodes/CodeSnippetNode';
 import { FileUploadNode } from './nodes/FileUploadNode';
 import { SectionHeaderNode } from './nodes/SectionHeaderNode';
+import { LinkedStoriesNode } from './nodes/LinkedStoriesNode';
 import { initialNodes, initialEdges } from './initialElements';
 
 interface ReportData {
@@ -30,7 +31,12 @@ interface ReportData {
     tester: string;
   }>;
   changeDescription: string;
-  linkedStories: string;
+  linkedStories: Array<{
+    id: string;
+    title: string;
+    url: string;
+    description: string;
+  }>;
   codeSnippets: Array<{
     nodeId?: string;
     title: string;
@@ -59,7 +65,7 @@ export const ReportBuilder: React.FC = () => {
     baselines: '',
     testCases: [],
     changeDescription: '',
-    linkedStories: '',
+    linkedStories: [],
     codeSnippets: [],
     attachments: [],
   });
@@ -71,7 +77,7 @@ export const ReportBuilder: React.FC = () => {
     baselines: '',
     testCases: [],
     changeDescription: '',
-    linkedStories: '',
+    linkedStories: [],
     codeSnippets: [],
     attachments: [],
   });
@@ -185,6 +191,16 @@ export const ReportBuilder: React.FC = () => {
       debugLogger.info('NODE_UPDATE', 'Processing test cases', { nodeId, field, value });
       setReportData(prev => ({ ...prev, testCases: value }));
       debugLogger.success('NODE_UPDATE', 'Test cases updated', { nodeId, count: value?.length });
+    } else if (field === 'changeDescription') {
+      // Handle change description
+      debugLogger.info('NODE_UPDATE', 'Processing change description', { nodeId, field, value });
+      setReportData(prev => ({ ...prev, changeDescription: value }));
+      debugLogger.success('NODE_UPDATE', 'Change description updated', { nodeId });
+    } else if (field === 'linkedStories') {
+      // Handle linked stories
+      debugLogger.info('NODE_UPDATE', 'Processing linked stories', { nodeId, field, value });
+      setReportData(prev => ({ ...prev, linkedStories: value }));
+      debugLogger.success('NODE_UPDATE', 'Linked stories updated', { nodeId, count: value?.length });
     } else if (field === 'files') {
       // Handle file upload attachments
       debugLogger.info('NODE_UPDATE', 'Processing file attachments', { nodeId, field, value });
@@ -237,6 +253,7 @@ export const ReportBuilder: React.FC = () => {
     codeSnippet: CodeSnippetNode,
     fileUpload: FileUploadNode,
     sectionHeader: SectionHeaderNode,
+    linkedStories: LinkedStoriesNode,
   };
 
   const onConnect = useCallback(
@@ -302,7 +319,7 @@ export const ReportBuilder: React.FC = () => {
       baselines: '',
       testCases: [],
       changeDescription: '',
-      linkedStories: '',
+      linkedStories: [],
       codeSnippets: [],
       attachments: [],
     };

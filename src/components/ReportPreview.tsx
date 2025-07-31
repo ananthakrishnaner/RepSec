@@ -17,7 +17,12 @@ interface ReportData {
     tester: string;
   }>;
   changeDescription: string;
-  linkedStories: string;
+  linkedStories: Array<{
+    id: string;
+    title: string;
+    url: string;
+    description: string;
+  }>;
   codeSnippets: Array<{
     nodeId?: string;
     title: string;
@@ -44,7 +49,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
                  reportData.baselines || 
                  reportData.testCases.length > 0 || 
                  reportData.changeDescription || 
-                 reportData.linkedStories || 
+                 reportData.linkedStories.length > 0 ||
                  reportData.codeSnippets.length > 0 || 
                  reportData.attachments.length > 0;
 
@@ -53,7 +58,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
     scope: reportData.scope || '(empty)',
     baselines: reportData.baselines || '(empty)',
     changeDescription: reportData.changeDescription || '(empty)',
-    linkedStories: reportData.linkedStories || '(empty)',
+    linkedStories: reportData.linkedStories.length > 0 ? `${reportData.linkedStories.length} stories` : '(empty)',
     hasData
   });
   
@@ -147,17 +152,48 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
       );
     }
 
-    if (reportData.changeDescription || reportData.linkedStories) {
+    if (reportData.changeDescription || reportData.linkedStories.length > 0) {
       sections.push(
         <div key="changes" className="mb-8">
           <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
             Change Description & Linked Stories
           </h2>
           {reportData.changeDescription && (
-            <p className="text-muted-foreground mb-4">{reportData.changeDescription}</p>
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-foreground mb-2">Change Description</h3>
+              <p className="text-muted-foreground">{reportData.changeDescription}</p>
+            </div>
           )}
-          {reportData.linkedStories && (
-            <p className="text-muted-foreground"><strong>Linked Stories:</strong> {reportData.linkedStories}</p>
+          {reportData.linkedStories.length > 0 && (
+            <div>
+              <h3 className="text-lg font-medium text-foreground mb-4">Linked Stories</h3>
+              <div className="space-y-4">
+                {reportData.linkedStories.map((story, index) => (
+                  <div key={index} className="border border-border rounded-lg p-4 bg-muted/20">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-primary">{story.id}</span>
+                        <span className="text-sm text-muted-foreground">•</span>
+                        <h4 className="text-sm font-medium text-foreground">{story.title}</h4>
+                      </div>
+                      {story.url && (
+                        <a 
+                          href={story.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline text-sm"
+                        >
+                          View Story →
+                        </a>
+                      )}
+                    </div>
+                    {story.description && (
+                      <p className="text-sm text-muted-foreground mt-2">{story.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       );

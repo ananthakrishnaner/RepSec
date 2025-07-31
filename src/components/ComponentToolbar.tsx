@@ -6,7 +6,8 @@ import {
   Code, 
   Upload, 
   Heading,
-  FileText
+  FileText,
+  Link
 } from 'lucide-react';
 
 const components = [
@@ -38,18 +39,10 @@ const components = [
     fieldType: 'baselines'
   },
   {
-    type: 'textInput',
-    label: 'Change Description',
-    icon: Type,
-    description: 'Describe changes',
-    fieldType: 'changeDescription'
-  },
-  {
-    type: 'textInput',
+    type: 'linkedStories',
     label: 'Linked Stories',
-    icon: Type,
-    description: 'Add story references',
-    fieldType: 'linkedStories'
+    icon: Link,
+    description: 'Change description & story links'
   },
   {
     type: 'table',
