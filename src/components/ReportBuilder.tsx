@@ -94,11 +94,87 @@ export const ReportBuilder: React.FC = () => {
 
   // Function to collect data from nodes and update preview
   const updatePreviewFromBuilder = () => {
-    const hasAnyData = Object.values(reportData).some(value => 
-      Array.isArray(value) ? value.length > 0 : Boolean(value)
-    );
-    
-    setPreviewData({ ...reportData });
+    // Extract data dynamically from actual nodes on canvas
+    const nodeBasedData = generateReportFromNodes(nodes);
+    setPreviewData(nodeBasedData);
+  };
+
+  // Function to generate report data from canvas nodes
+  const generateReportFromNodes = (currentNodes: Node[]) => {
+    const generatedData: ReportData = {
+      projectName: '',
+      scope: '',
+      baselines: '',
+      testCases: [],
+      changeDescription: '',
+      linkedStories: [],
+      codeSnippets: [],
+      attachments: [],
+    };
+
+    // Sort nodes by position (top to bottom, left to right)
+    const sortedNodes = [...currentNodes].sort((a, b) => {
+      if (Math.abs(a.position.y - b.position.y) > 50) {
+        return a.position.y - b.position.y;
+      }
+      return a.position.x - b.position.x;
+    });
+
+    // Extract data from each node based on its type and current data
+    sortedNodes.forEach(node => {
+      const nodeData = node.data || {};
+      
+      switch (node.type) {
+        case 'textInput':
+          if (nodeData.fieldType === 'projectName' && nodeData.value) {
+            generatedData.projectName = String(nodeData.value);
+          } else if (nodeData.fieldType === 'scope' && nodeData.value) {
+            generatedData.scope = String(nodeData.value);
+          } else if (nodeData.fieldType === 'baselines' && nodeData.value) {
+            generatedData.baselines = String(nodeData.value);
+          }
+          break;
+          
+        case 'table':
+          if (nodeData.testCases && Array.isArray(nodeData.testCases)) {
+            generatedData.testCases = nodeData.testCases;
+          }
+          break;
+          
+        case 'codeSnippet':
+          if (nodeData.title && nodeData.content) {
+            generatedData.codeSnippets.push({
+              nodeId: node.id,
+              title: String(nodeData.title || 'Code Snippet'),
+              content: String(nodeData.content || ''),
+              language: String(nodeData.language || 'javascript')
+            });
+          }
+          break;
+          
+        case 'linkedStories':
+          if (nodeData.changeDescription) {
+            generatedData.changeDescription = String(nodeData.changeDescription);
+          }
+          if (nodeData.linkedStories && Array.isArray(nodeData.linkedStories)) {
+            generatedData.linkedStories = nodeData.linkedStories;
+          }
+          break;
+          
+        case 'fileUpload':
+          if (nodeData.files && Array.isArray(nodeData.files)) {
+            const attachments = nodeData.files.map((file: any) => ({
+              name: file.name || 'Unknown File',
+              url: file.url || '#',
+              type: file.type || 'Unknown'
+            }));
+            generatedData.attachments.push(...attachments);
+          }
+          break;
+      }
+    });
+
+    return generatedData;
   };
 
   // Standard nodes initialization - moved up to avoid "used before declaration" error
