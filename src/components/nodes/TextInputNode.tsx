@@ -25,14 +25,24 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeDat
   const [label, setLabel] = useState(data.label || 'Text Input');
 
   const handleValueChange = (newValue: string) => {
-    console.log('TextInputNode handleValueChange:', id, newValue);
+    console.log('TextInputNode handleValueChange TRIGGERED:', id, newValue);
     setValue(newValue);
     if (updateNodeData) {
+      console.log('Calling updateNodeData:', id, 'value', newValue);
       updateNodeData(id, 'value', newValue);
+    } else {
+      console.log('updateNodeData is not available!');
     }
   };
 
-  console.log('TextInputNode render:', id, 'updateNodeData:', !!updateNodeData);
+  // Sync with external data changes
+  React.useEffect(() => {
+    if (data.value !== undefined && data.value !== value) {
+      setValue(data.value);
+    }
+  }, [data.value, value]);
+
+  console.log('TextInputNode render:', id, 'updateNodeData:', !!updateNodeData, 'current value:', value);
 
   return (
     <Card className="w-80 p-4 bg-gradient-to-br from-card to-accent/30 border-border shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm">

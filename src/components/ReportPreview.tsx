@@ -39,6 +39,16 @@ interface ReportPreviewProps {
 
 export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
   console.log('ReportPreview received data:', reportData);
+  
+  // Debug: Show what data we actually have
+  React.useEffect(() => {
+    console.log('ReportPreview data changed:', {
+      projectName: reportData.projectName,
+      scope: reportData.scope,
+      hasTestCases: reportData.testCases.length > 0,
+      hasCodeSnippets: reportData.codeSnippets.length > 0
+    });
+  }, [reportData]);
   const generateMarkdown = (): string => {
     return `# ${reportData.projectName || 'Security Testing Report'}
 
