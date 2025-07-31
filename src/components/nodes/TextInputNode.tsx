@@ -15,13 +15,19 @@ interface TextInputNodeProps {
     multiline?: boolean;
   };
   id: string;
+  updateNodeData?: (nodeId: string, field: string, value: any) => void;
 }
 
-export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
+export const TextInputNode = memo<TextInputNodeProps>(({ data, id, updateNodeData }) => {
   const [value, setValue] = useState(data.value || '');
   const [placeholder, setPlaceholder] = useState(data.placeholder || 'Enter text...');
   const [multiline, setMultiline] = useState(data.multiline || false);
   const [label, setLabel] = useState(data.label || 'Text Input');
+
+  const handleValueChange = (newValue: string) => {
+    setValue(newValue);
+    updateNodeData?.(id, 'value', newValue);
+  };
 
   return (
     <Card className="w-80 p-4 bg-gradient-to-br from-card to-accent/30 border-border shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm">
@@ -73,7 +79,7 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
             <Textarea
               id={`${id}-value`}
               value={value}
-              onChange={(e) => setValue(e.target.value)}
+              onChange={(e) => handleValueChange(e.target.value)}
               placeholder={placeholder}
               className="modern-input min-h-20 resize-none"
             />
@@ -81,7 +87,7 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
             <Input
               id={`${id}-value`}
               value={value}
-              onChange={(e) => setValue(e.target.value)}
+              onChange={(e) => handleValueChange(e.target.value)}
               placeholder={placeholder}
               className="modern-input"
             />

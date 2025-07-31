@@ -24,9 +24,10 @@ interface TableNodeProps {
     testCases?: TestCase[];
   };
   id: string;
+  updateNodeData?: (nodeId: string, field: string, value: any) => void;
 }
 
-export const TableNode = memo<TableNodeProps>(({ data, id }) => {
+export const TableNode = memo<TableNodeProps>(({ data, id, updateNodeData }) => {
   const [testCases, setTestCases] = useState<TestCase[]>(data.testCases || [
     {
       id: '',
@@ -41,7 +42,7 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
   ]);
 
   const addTestCase = () => {
-    setTestCases([...testCases, {
+    const updated = [...testCases, {
       id: '',
       testCase: '',
       category: '',
@@ -50,17 +51,22 @@ export const TableNode = memo<TableNodeProps>(({ data, id }) => {
       evidence: '',
       remediation: 'Pending',
       tester: ''
-    }]);
+    }];
+    setTestCases(updated);
+    updateNodeData?.(id, 'testCases', updated);
   };
 
   const removeTestCase = (index: number) => {
-    setTestCases(testCases.filter((_, i) => i !== index));
+    const updatedTestCases = testCases.filter((_, i) => i !== index);
+    setTestCases(updatedTestCases);
+    updateNodeData?.(id, 'testCases', updatedTestCases);
   };
 
   const updateTestCase = (index: number, field: keyof TestCase, value: string) => {
     const updated = [...testCases];
     updated[index] = { ...updated[index], [field]: value };
     setTestCases(updated);
+    updateNodeData?.(id, 'testCases', updated);
   };
 
   return (

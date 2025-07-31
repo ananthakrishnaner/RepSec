@@ -22,9 +22,10 @@ interface FileUploadNodeProps {
     allowedTypes?: string[];
   };
   id: string;
+  updateNodeData?: (nodeId: string, field: string, value: any) => void;
 }
 
-export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
+export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id, updateNodeData }) => {
   const [files, setFiles] = useState<FileUpload[]>(data.files || []);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -74,7 +75,9 @@ export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
       });
     }
 
-    setFiles([...files, ...newFiles]);
+    const updatedFiles = [...files, ...newFiles];
+    setFiles(updatedFiles);
+    updateNodeData?.(id, 'files', updatedFiles);
     
     if (newFiles.length > 0) {
       toast({
@@ -107,7 +110,9 @@ export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
   const removeFile = (index: number) => {
     const fileToRemove = files[index];
     URL.revokeObjectURL(fileToRemove.url); // Clean up object URL
-    setFiles(files.filter((_, i) => i !== index));
+    const updatedFiles = files.filter((_, i) => i !== index);
+    setFiles(updatedFiles);
+    updateNodeData?.(id, 'files', updatedFiles);
   };
 
   const formatFileSize = (bytes: number) => {

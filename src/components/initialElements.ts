@@ -38,7 +38,8 @@ export const initialNodes: Node[] = [
     data: { 
       label: 'Scope Description',
       placeholder: 'Describe the scope of testing...',
-      multiline: true
+      multiline: true,
+      value: ''
     },
   },
   {

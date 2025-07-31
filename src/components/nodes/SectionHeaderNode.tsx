@@ -13,11 +13,22 @@ interface SectionHeaderNodeProps {
     level?: string;
   };
   id: string;
+  updateNodeData?: (nodeId: string, field: string, value: any) => void;
 }
 
-export const SectionHeaderNode = memo<SectionHeaderNodeProps>(({ data, id }) => {
+export const SectionHeaderNode = memo<SectionHeaderNodeProps>(({ data, id, updateNodeData }) => {
   const [title, setTitle] = useState(data.title || 'Section Title');
   const [level, setLevel] = useState(data.level || 'h2');
+
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle);
+    updateNodeData?.(id, 'title', newTitle);
+  };
+
+  const handleLevelChange = (newLevel: string) => {
+    setLevel(newLevel);
+    updateNodeData?.(id, 'level', newLevel);
+  };
 
   const getPreviewStyle = () => {
     switch (level) {
@@ -53,7 +64,7 @@ export const SectionHeaderNode = memo<SectionHeaderNodeProps>(({ data, id }) => 
           <Label htmlFor={`${id}-level`} className="text-xs">
             Header Level
           </Label>
-          <Select value={level} onValueChange={setLevel}>
+          <Select value={level} onValueChange={handleLevelChange}>
             <SelectTrigger className="text-xs">
               <SelectValue />
             </SelectTrigger>
@@ -73,7 +84,7 @@ export const SectionHeaderNode = memo<SectionHeaderNodeProps>(({ data, id }) => 
           <Input
             id={`${id}-title`}
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="Enter section title"
           />
         </div>

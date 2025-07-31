@@ -17,6 +17,7 @@ interface CodeSnippetNodeProps {
     language?: string;
   };
   id: string;
+  updateNodeData?: (nodeId: string, field: string, value: any) => void;
 }
 
 const languages = [
@@ -30,11 +31,26 @@ const languages = [
   { value: 'curl', label: 'cURL' },
 ];
 
-export const CodeSnippetNode = memo<CodeSnippetNodeProps>(({ data, id }) => {
+export const CodeSnippetNode = memo<CodeSnippetNodeProps>(({ data, id, updateNodeData }) => {
   const [title, setTitle] = useState(data.title || 'Code Snippet');
   const [content, setContent] = useState(data.content || '');
   const [language, setLanguage] = useState(data.language || 'http');
   const { toast } = useToast();
+
+  const handleContentChange = (newContent: string) => {
+    setContent(newContent);
+    updateNodeData?.(id, 'content', newContent);
+  };
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    updateNodeData?.(id, 'language', newLanguage);
+  };
+
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle);
+    updateNodeData?.(id, 'title', newTitle);
+  };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(content);
@@ -54,8 +70,8 @@ Content-Length: 45
   "username": "admin",
   "password": "password123"
 }`;
-    setContent(httpTemplate);
-    setLanguage('http');
+    handleContentChange(httpTemplate);
+    handleLanguageChange('http');
   };
 
   const formatAsHttpResponse = () => {
@@ -68,8 +84,8 @@ Content-Length: 76
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user_id": 123
 }`;
-    setContent(httpTemplate);
-    setLanguage('http');
+    handleContentChange(httpTemplate);
+    handleLanguageChange('http');
   };
 
   return (
@@ -80,7 +96,7 @@ Content-Length: 76
         <Code className="h-4 w-4 text-primary" />
         <Input
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => handleTitleChange(e.target.value)}
           className="text-sm font-medium border-none p-0 h-auto"
           placeholder="Snippet title"
         />
@@ -91,7 +107,7 @@ Content-Length: 76
           <Label htmlFor={`${id}-language`} className="text-xs">
             Language
           </Label>
-          <Select value={language} onValueChange={setLanguage}>
+          <Select value={language} onValueChange={handleLanguageChange}>
             <SelectTrigger className="text-xs">
               <SelectValue />
             </SelectTrigger>
@@ -141,7 +157,7 @@ Content-Length: 76
           <Textarea
             id={`${id}-content`}
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => handleContentChange(e.target.value)}
             placeholder="Paste your HTTP request/response or code here..."
             className="font-mono text-xs min-h-32"
           />

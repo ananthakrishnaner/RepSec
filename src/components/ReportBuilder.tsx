@@ -13,13 +13,13 @@ import { FileUploadNode } from './nodes/FileUploadNode';
 import { SectionHeaderNode } from './nodes/SectionHeaderNode';
 import { initialNodes, initialEdges } from './initialElements';
 
-const nodeTypes = {
-  textInput: TextInputNode,
-  table: TableNode,
-  codeSnippet: CodeSnippetNode,
-  fileUpload: FileUploadNode,
-  sectionHeader: SectionHeaderNode,
-};
+const createNodeTypes = (updateNodeData: (nodeId: string, field: string, value: any) => void) => ({
+  textInput: (props: any) => <TextInputNode {...props} updateNodeData={updateNodeData} />,
+  table: (props: any) => <TableNode {...props} updateNodeData={updateNodeData} />,
+  codeSnippet: (props: any) => <CodeSnippetNode {...props} updateNodeData={updateNodeData} />,
+  fileUpload: (props: any) => <FileUploadNode {...props} updateNodeData={updateNodeData} />,
+  sectionHeader: (props: any) => <SectionHeaderNode {...props} updateNodeData={updateNodeData} />,
+});
 
 interface ReportData {
   projectName: string;
@@ -104,6 +104,42 @@ export const ReportBuilder: React.FC = () => {
   const updateReportData = useCallback((updates: Partial<ReportData>) => {
     setReportData((prev) => ({ ...prev, ...updates }));
   }, []);
+
+  const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          const updatedData = { ...node.data, [field]: value };
+          
+          // Update report data based on node type and field
+          if (node.type === 'textInput') {
+            if (nodeId === 'project-name') {
+              updateReportData({ projectName: value });
+            } else if (nodeId === 'scope-text') {
+              updateReportData({ scope: value });
+            } else if (nodeId.includes('baseline')) {
+              updateReportData({ baselines: value });
+            } else if (nodeId.includes('change')) {
+              updateReportData({ changeDescription: value });
+            } else if (nodeId.includes('stories')) {
+              updateReportData({ linkedStories: value });
+            }
+          } else if (node.type === 'table' && field === 'testCases') {
+            updateReportData({ testCases: value });
+          } else if (node.type === 'codeSnippet' && field === 'codeSnippets') {
+            updateReportData({ codeSnippets: value });
+          } else if (node.type === 'fileUpload' && field === 'attachments') {
+            updateReportData({ attachments: value });
+          }
+
+          return { ...node, data: updatedData };
+        }
+        return node;
+      })
+    );
+  }, [updateReportData, setNodes]);
+
+  const nodeTypes = createNodeTypes(updateNodeData);
 
   const exportMarkdown = useCallback(() => {
     // Generate markdown content
