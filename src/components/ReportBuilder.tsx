@@ -250,6 +250,7 @@ export const ReportBuilder: React.FC = () => {
   );
 
   const clearAllData = () => {
+    // Reset global data states
     setReportData({
       projectName: '',
       scope: '',
@@ -272,8 +273,29 @@ export const ReportBuilder: React.FC = () => {
       attachments: []
     });
     
+    // Reset nodes and edges to initial state
     setNodes(initialNodes);
     setEdges(initialEdges);
+    
+    // Force re-render of nodes by updating their data
+    setTimeout(() => {
+      setNodes(currentNodes => 
+        currentNodes.map(node => ({
+          ...node,
+          data: {
+            ...node.data,
+            value: '',
+            content: '',
+            title: '',
+            language: 'javascript',
+            testCases: [],
+            linkedStories: [],
+            changeDescription: '',
+            files: []
+          }
+        }))
+      );
+    }, 100);
   };
 
   let id = 0;
