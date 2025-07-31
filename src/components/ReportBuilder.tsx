@@ -180,6 +180,21 @@ export const ReportBuilder: React.FC = () => {
         });
         debugLogger.success('NODE_UPDATE', 'Code snippet updated', { nodeId, field, value });
       }
+    } else if (field === 'testCases') {
+      // Handle table node test cases
+      debugLogger.info('NODE_UPDATE', 'Processing test cases', { nodeId, field, value });
+      setReportData(prev => ({ ...prev, testCases: value }));
+      debugLogger.success('NODE_UPDATE', 'Test cases updated', { nodeId, count: value?.length });
+    } else if (field === 'files') {
+      // Handle file upload attachments
+      debugLogger.info('NODE_UPDATE', 'Processing file attachments', { nodeId, field, value });
+      const attachments = value?.map((file: any) => ({
+        name: file.name,
+        url: file.url,
+        type: file.type
+      })) || [];
+      setReportData(prev => ({ ...prev, attachments }));
+      debugLogger.success('NODE_UPDATE', 'Attachments updated', { nodeId, count: attachments.length });
     }
   }, [updateReportData, nodes]);
 

@@ -11,12 +11,13 @@ interface SectionHeaderNodeProps {
     label: string;
     title?: string;
     level?: string;
+    updateNodeData?: (nodeId: string, field: string, value: any) => void;
   };
   id: string;
-  updateNodeData?: (nodeId: string, field: string, value: any) => void;
 }
 
-export const SectionHeaderNode = memo<SectionHeaderNodeProps>(({ data, id, updateNodeData }) => {
+export const SectionHeaderNode = memo<SectionHeaderNodeProps>(({ data, id }) => {
+  const updateNodeData = data.updateNodeData;
   const [title, setTitle] = useState(data.title || 'Section Title');
   const [level, setLevel] = useState(data.level || 'h2');
 

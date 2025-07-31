@@ -46,6 +46,22 @@ export const CodeSnippetNode = memo<CodeSnippetNodeProps>(({ data, id }) => {
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);
     updateNodeData?.(id, 'language', newLanguage);
+    
+    // Change placeholder and example content based on language
+    const examples = {
+      javascript: 'function example() {\n  console.log("Hello World");\n}',
+      python: 'def example():\n    print("Hello World")',
+      bash: '#!/bin/bash\necho "Hello World"',
+      sql: 'SELECT * FROM users WHERE active = 1;',
+      json: '{\n  "message": "Hello World",\n  "status": "success"\n}',
+      xml: '<?xml version="1.0"?>\n<message>Hello World</message>',
+      curl: 'curl -X GET https://api.example.com/users',
+      http: 'GET /api/users HTTP/1.1\nHost: example.com\nAuthorization: Bearer token123'
+    };
+    
+    const newExample = examples[newLanguage] || examples.javascript;
+    setContent(newExample);
+    updateNodeData?.(id, 'content', newExample);
   };
 
   const handleTitleChange = (newTitle: string) => {
@@ -59,34 +75,6 @@ export const CodeSnippetNode = memo<CodeSnippetNodeProps>(({ data, id }) => {
       title: "Copied to clipboard",
       description: "Code snippet has been copied to your clipboard.",
     });
-  };
-
-  const formatAsHttpRequest = () => {
-    const httpTemplate = `POST /api/login HTTP/1.1
-Host: example.com
-Content-Type: application/json
-Content-Length: 45
-
-{
-  "username": "admin",
-  "password": "password123"
-}`;
-    handleContentChange(httpTemplate);
-    handleLanguageChange('http');
-  };
-
-  const formatAsHttpResponse = () => {
-    const httpTemplate = `HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Length: 76
-
-{
-  "status": "success",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user_id": 123
-}`;
-    handleContentChange(httpTemplate);
-    handleLanguageChange('http');
   };
 
   return (
@@ -122,24 +110,6 @@ Content-Length: 76
           </Select>
         </div>
 
-        <div className="flex gap-2">
-          <Button
-            onClick={formatAsHttpRequest}
-            size="sm"
-            variant="outline"
-            className="flex-1 text-xs"
-          >
-            HTTP Request
-          </Button>
-          <Button
-            onClick={formatAsHttpResponse}
-            size="sm"
-            variant="outline"
-            className="flex-1 text-xs"
-          >
-            HTTP Response
-          </Button>
-        </div>
 
         <div>
           <div className="flex items-center justify-between mb-1">
@@ -159,7 +129,7 @@ Content-Length: 76
             id={`${id}-content`}
             value={content}
             onChange={(e) => handleContentChange(e.target.value)}
-            placeholder="Paste your HTTP request/response or code here..."
+            placeholder={`Enter your ${language} code here...`}
             className="font-mono text-xs min-h-32"
           />
         </div>

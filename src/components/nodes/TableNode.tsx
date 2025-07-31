@@ -22,12 +22,13 @@ interface TableNodeProps {
   data: {
     label: string;
     testCases?: TestCase[];
+    updateNodeData?: (nodeId: string, field: string, value: any) => void;
   };
   id: string;
-  updateNodeData?: (nodeId: string, field: string, value: any) => void;
 }
 
-export const TableNode = memo<TableNodeProps>(({ data, id, updateNodeData }) => {
+export const TableNode = memo<TableNodeProps>(({ data, id }) => {
+  const updateNodeData = data.updateNodeData;
   const [testCases, setTestCases] = useState<TestCase[]>(data.testCases || [
     {
       id: '',

@@ -20,12 +20,13 @@ interface FileUploadNodeProps {
     label: string;
     files?: FileUpload[];
     allowedTypes?: string[];
+    updateNodeData?: (nodeId: string, field: string, value: any) => void;
   };
   id: string;
-  updateNodeData?: (nodeId: string, field: string, value: any) => void;
 }
 
-export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id, updateNodeData }) => {
+export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
+  const updateNodeData = data.updateNodeData;
   const [files, setFiles] = useState<FileUpload[]>(data.files || []);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
