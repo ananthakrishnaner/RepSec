@@ -1,73 +1,130 @@
-# Welcome to your Lovable project
+# RepSec: Visual Security Report Builder
 
-## Project info
+![RepSec Application Screenshot](https://raw.githubusercontent.com/ananthakrishnaner/RepSec/main/.github/screenshot.png) <!-- Optional: Add a screenshot to your repo in a .github folder for a great visual -->
 
-**URL**: https://lovable.dev/projects/eed6cbb1-e5f8-4d43-8903-24cea39244f5
+RepSec is a modern, web-based tool designed to streamline the creation of professional security reports. It provides a visual, component-driven canvas where security professionals can drag, drop, and arrange elements to build comprehensive and well-structured reports. The final output is a portable Markdown file packaged with all associated evidence.
 
-## How can I edit this code?
+## ✨ Features
 
-There are several ways of editing your application.
+- **Visual Report Construction**: Drag and drop components like text blocks, tables, and code snippets onto a dynamic canvas.
+- **Component-Driven Architecture**: Build reports using specialized modules:
+  - **Test Case Table**: A detailed, interactive table for tracking vulnerabilities, status, and testers.
+  - **Steps to Reproduce**: An ordered list component with support for text and screenshot attachments for each step.
+  - **Code Snippets**: Display HTTP requests, responses, or other code blocks with syntax highlighting.
+  - **File Attachments**: Upload and manage evidence files (images, documents, etc.).
+  - **Linked Stories**: Connect findings to external issue trackers like Jira.
+- **Live Preview**: Instantly see a rendered, GitHub-style preview of your report as you build it.
+- **Auto-Layout**: A "Tidy Up" button to automatically arrange your components into a clean, logical layout.
+- **Persistent Design**: Save your report layout and progress by exporting the design to a JSON file and importing it later.
+- **Markdown & ZIP Export**: Generate a complete report package, including a `report.md` file and an `evidence` folder containing all uploaded files, neatly packaged in a `.zip` archive.
 
-**Use Lovable**
+## 🚀 Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/eed6cbb1-e5f8-4d43-8903-24cea39244f5) and start prompting.
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- [Node.js](https://nodejs.org/) (v18 or newer recommended)
+- [npm](https://www.npmjs.com/) (usually comes with Node.js) or [Bun](https://bun.sh/)
+- [Git](https://git-scm.com/)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Local Installation & Setup
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1.  **Clone the repository:**
+    Open your terminal and clone the `RepSec` repository to your local machine.
 
-Follow these steps:
+    ```bash
+    git clone https://github.com/ananthakrishnaner/RepSec.git
+    ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2.  **Navigate to the project directory:**
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+    ```bash
+    cd RepSec
+    ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3.  **Install dependencies:**
+    This will download and install all the necessary packages for the project.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+    ```bash
+    npm install
+    ```
+    *Note: If you encounter a permission error on macOS or Linux, you may need to fix your npm permissions. **Do not use `sudo`**. Instead, run `sudo chown -R $(whoami) ~/.npm` once to fix it permanently.*
 
-**Edit a file directly in GitHub**
+4.  **Run the development server:**
+    This command starts the Vite development server, usually on `http://localhost:8080`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+    ```bash
+    npm run dev
+    ```
 
-**Use GitHub Codespaces**
+You can now open your web browser and navigate to the local URL to start using the application!
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🔧 How to Use RepSec
 
-## What technologies are used for this project?
+The workflow is designed to be intuitive and component-based.
 
-This project is built with:
+1.  **Select a Component**: On the left-hand sidebar, you'll find a list of available "Report Components."
+2.  **Drag and Drop**: Click and drag any component from the sidebar onto the main canvas area.
+3.  **Fill in the Details**: Click on a component on the canvas to edit its content.
+    -   For the **Test Case Table**, you must provide an "ID" before the "Upload" button for evidence becomes active.
+    -   For the **Steps to Reproduce** component, you can add, remove, and reorder steps, each with its own text and optional screenshot.
+4.  **Arrange and Connect (Optional)**:
+    -   Move components around freely on the canvas.
+    -   Click the **"Tidy Up Layout"** button to automatically organize all components into a clean, vertical flow.
+5.  **Preview Your Work**:
+    -   Click the **"Show Preview"** tab at any time to see a live, rendered version of your report. Images uploaded via the `FileUpload` and `Steps` components will be visible here.
+6.  **Save and Load Your Progress**:
+    -   Use the **"Export Design"** button to save the entire layout and content of your canvas to a `.json` file.
+    -   Use the **"Import Design"** button to load a previously saved `.json` file and continue your work.
+7.  **Generate the Final Report**:
+    -   When your report is complete, click the **"Generate Report Package (.zip)"** button.
+    -   This will download a `.zip` file containing:
+        -   `report.md`: A fully formatted Markdown file.
+        -   `evidence/`: A folder containing all the files you uploaded, correctly named and referenced in the Markdown file.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📦 Deployment to a Hosting Server
 
-## How can I deploy this project?
+To deploy RepSec to a hosting service like Vercel, Netlify, or your own server, you need to create a production build.
 
-Simply open [Lovable](https://lovable.dev/projects/eed6cbb1-e5f8-4d43-8903-24cea39244f5) and click on Share -> Publish.
+1.  **Build the project:**
+    In your project's root directory, run the build command.
 
-## Can I connect a custom domain to my Lovable project?
+    ```bash
+    npm run build
+    ```
+    This command compiles the application and creates a highly optimized, static version in a new `dist/` folder.
 
-Yes, you can!
+2.  **Deploy the `dist` folder:**
+    The `dist` folder is all you need to deploy. You can:
+    -   **Drag and drop** the `dist` folder into the Netlify or Vercel dashboard.
+    -   **Use a CLI:** Point the `vercel` or `netlify` command-line tool to this directory.
+    -   **FTP/SSH:** If using a traditional server (like Nginx or Apache), upload the *contents* of the `dist` folder to your web root (e.g., `/var/www/html`).
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+    **Example Nginx Configuration:**
+    For a static site, you need to ensure all routes redirect to `index.html` to support client-side routing.
+    ```nginx
+    server {
+        listen 80;
+        server_name your-domain.com;
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+        root /var/www/html;
+        index index.html;
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+    ```
+
+## 🛠️ Built With
+
+-   **Framework**: [React](https://react.dev/) with [Vite](https://vitejs.dev/)
+-   **Language**: [TypeScript](https://www.typescriptlang.org/)
+-   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+-   **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+-   **Canvas/Flow**: [@xyflow/react](https://reactflow.dev/)
+-   **Layout Engine**: [Dagre](https://github.com/dagrejs/dagre)
+-   **ZIP Generation**: [JSZip](https://stuk.github.io/jszip/)
+
+---
