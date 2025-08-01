@@ -1,392 +1,101 @@
-import React, { memo, useState, useRef } from 'react';
+import React, { memo, useState, useRef, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Textarea } from '@/components/ui/textarea';
-import { Table, Plus, Minus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Upload, Image } from 'lucide-react';
+import { Table, Plus, X, FileUp, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { UploadedFile, NodeData } from './types';
 
-interface TestCase {
-  id: string;
-  testCase: string;
-  category: string;
-  exploited: string;
-  url: string;
-  evidence: string;
-  remediation: string;
-  tester: string;
-}
+interface TestCase { id: string; testCase: string; category: string; exploited: string; url: string; evidence: UploadedFile[]; status: string; tester: string; }
+interface TableNodeProps { data: NodeData; id: string; }
 
-interface TableNodeProps {
-  data: {
-    label: string;
-    testCases?: TestCase[];
-    updateNodeData?: (nodeId: string, field: string, value: any) => void;
-  };
-  id: string;
-}
+// --- CHANGE IS HERE ---
+// The default status is now "Not Applicable"
+const createNewTestCase = (): TestCase => ({ id: '', testCase: '', category: '', exploited: 'No', url: '', evidence: [], status: 'Not Applicable', tester: '' });
 
 export const TableNode = memo<TableNodeProps>(({ data, id }) => {
-  const updateNodeData = data.updateNodeData;
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
+  const { updateNodeData } = data;
   const { toast } = useToast();
-  const [testCases, setTestCases] = useState<TestCase[]>(data.testCases || [
-    {
-      id: '',
-      testCase: '',
-      category: '',
-      exploited: 'No',
-      url: '',
-      evidence: '',
-      remediation: 'Pending',
-      tester: ''
-    }
-  ]);
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [testCases, setTestCases] = useState<TestCase[]>(data.testCases || [createNewTestCase()]);
 
-  const addTestCase = () => {
-    const updated = [...testCases, {
-      id: '',
-      testCase: '',
-      category: '',
-      exploited: 'No',
-      url: '',
-      evidence: '',
-      remediation: 'Pending',
-      tester: ''
-    }];
-    setTestCases(updated);
-    updateNodeData?.(id, 'testCases', updated);
-  };
+  useEffect(() => {
+    return () => { testCases.forEach(tc => tc.evidence.forEach(ev => URL.revokeObjectURL(ev.previewUrl))); };
+  }, [testCases]);
 
+  const updateTestCasesState = (newTestCases: TestCase[]) => { setTestCases(newTestCases); updateNodeData?.(id, 'testCases', newTestCases); };
+  const addTestCase = () => updateTestCasesState([...testCases, createNewTestCase()]);
   const removeTestCase = (index: number) => {
-    const updatedTestCases = testCases.filter((_, i) => i !== index);
-    setTestCases(updatedTestCases);
-    updateNodeData?.(id, 'testCases', updatedTestCases);
+    if (testCases.length <= 1) return toast({ title: "Cannot remove the last row", variant: "destructive" });
+    testCases[index].evidence.forEach(ev => URL.revokeObjectURL(ev.previewUrl));
+    updateTestCasesState(testCases.filter((_, i) => i !== index));
   };
-
-  const updateTestCase = (index: number, field: keyof TestCase, value: string) => {
-    const updated = [...testCases];
-    updated[index] = { ...updated[index], [field]: value };
-    setTestCases(updated);
-    updateNodeData?.(id, 'testCases', updated);
+  const updateTestCaseField = (index: number, field: keyof TestCase, value: any) => {
+    const updated = [...testCases]; updated[index] = { ...updated[index], [field]: value };
+    updateTestCasesState(updated);
   };
-
-  // Scroll functions for arrow navigation
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+  const handleEvidenceUpload = (tcIndex: number, files: FileList) => {
+    const testCaseId = testCases[tcIndex].id.trim();
+    if (!testCaseId) return toast({ title: "Please provide a Test Case ID first.", variant: "destructive" });
+    const newEvidence: UploadedFile[] = Array.from(files).filter(f => f.type.startsWith('image/')).map((file, i) => {
+      const extension = file.name.split('.').pop() || 'png';
+      const safeId = testCaseId.replace(/[^a-zA-Z0-9-]/g, '_');
+      const newFileName = `${safeId}-evidence-${testCases[tcIndex].evidence.length + i + 1}.${extension}`;
+      const newPath = `./evidence/${newFileName}`;
+      return { name: file.name, path: newPath, file: file, previewUrl: URL.createObjectURL(file) };
+    });
+    if (newEvidence.length > 0) {
+      updateTestCaseField(tcIndex, 'evidence', [...testCases[tcIndex].evidence, ...newEvidence]);
+      toast({ title: "Evidence prepared and renamed." });
     }
   };
-
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 200, behavior: 'smooth' });
-    }
+  const removeEvidence = (tcIndex: number, evIndex: number) => {
+    URL.revokeObjectURL(testCases[tcIndex].evidence[evIndex].previewUrl);
+    updateTestCaseField(tcIndex, 'evidence', testCases[tcIndex].evidence.filter((_, i) => i !== evIndex));
   };
-
-  const scrollUp = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ top: -150, behavior: 'smooth' });
-    }
-  };
-
-  // Handle screenshot upload for evidence
-  const handleEvidenceUpload = (testCaseIndex: number, files: FileList) => {
-    console.log('Files selected:', files.length); // Debug log
-    const screenshots: string[] = [];
-    const currentTestCase = testCases[testCaseIndex];
-    
-    // Get test case ID and normalize it for filename
-    const testCaseId = currentTestCase.id || `TC-${String(testCaseIndex + 1).padStart(3, '0')}`;
-    const normalizedId = testCaseId.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    
-    // Count existing evidence files to continue numbering
-    const currentEvidence = currentTestCase.evidence;
-    const existingScreenshots = currentEvidence ? currentEvidence.split('\n').filter(Boolean) : [];
-    let evidenceCounter = existingScreenshots.length + 1;
-    
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      console.log('Processing file:', file.name); // Debug log
-      
-      // Check if it's an image
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Invalid file type",
-          description: `${file.name} is not an image file.`,
-          variant: "destructive",
-        });
-        continue;
-      }
-
-      // Check file size (max 5MB for screenshots)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: `${file.name} is larger than 5MB.`,
-          variant: "destructive",
-        });
-        continue;
-      }
-
-      // Get file extension
-      const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'png';
-      
-      // Generate new filename based on test case ID
-      const newFileName = `${normalizedId}-evidence${evidenceCounter}.${fileExtension}`;
-      screenshots.push(`./evidence/${newFileName}`);
-      evidenceCounter++;
-    }
-
-    console.log('Screenshots array:', screenshots); // Debug log
-
-    if (screenshots.length > 0) {
-      // Update the evidence field with new screenshot paths (one per line)
-      const allScreenshots = [...existingScreenshots, ...screenshots];
-      const evidenceString = allScreenshots.join('\n');
-      
-      console.log('Current evidence:', currentEvidence); // Debug log
-      console.log('Existing screenshots:', existingScreenshots); // Debug log
-      console.log('All screenshots:', allScreenshots); // Debug log
-      console.log('Final evidence string:', evidenceString); // Debug log
-      
-      updateTestCase(testCaseIndex, 'evidence', evidenceString);
-      
-      toast({
-        title: "Screenshots uploaded",
-        description: `${screenshots.length} screenshot(s) renamed and added to evidence folder.`,
-      });
-    }
-  };
-
-  const triggerEvidenceUpload = (testCaseIndex: number) => {
-    const input = fileInputRefs.current[testCaseIndex];
-    if (input) {
-      input.click();
-    }
-  };
-
-  const scrollDown = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ top: 150, behavior: 'smooth' });
-    }
-  };
+  const scroll = (x: number, y: number) => scrollContainerRef.current?.scrollBy({ left: x, top: y, behavior: 'smooth' });
 
   return (
-    <Card className="w-[800px] p-4 bg-background border-border">
-      <Handle type="target" position={Position.Top} className="w-2 h-2" />
-      
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Table className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">Test Cases Table</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={addTestCase} size="sm" variant="outline">
-            <Plus className="h-3 w-3 mr-1" />
-            Add Row
-          </Button>
-        </div>
-      </div>
-
-      {/* Navigation Controls */}
-      <div className="flex items-center justify-center gap-2 mb-3">
-        <div className="flex items-center gap-1">
-          <Button onClick={scrollUp} size="sm" variant="outline" className="h-8 w-8 p-0">
-            <ChevronUp className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button onClick={scrollLeft} size="sm" variant="outline" className="h-8 w-8 p-0">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-xs text-muted-foreground px-2">Navigate</span>
-          <Button onClick={scrollRight} size="sm" variant="outline" className="h-8 w-8 p-0">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button onClick={scrollDown} size="sm" variant="outline" className="h-8 w-8 p-0">
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div 
-        ref={scrollRef}
-        style={{
-          height: '350px',
-          width: '100%',
-          border: '2px solid #3b82f6',
-          borderRadius: '8px',
-          backgroundColor: '#f8fafc',
-          overflow: 'auto'
-        }}
-      >
-        <div style={{ minWidth: '1500px', minHeight: '600px', padding: '16px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {testCases.map((testCase, index) => (
-              <div key={index} style={{ 
-                border: '1px solid #e2e8f0', 
-                borderRadius: '8px', 
-                backgroundColor: '#ffffff',
-                padding: '16px'
-              }}>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  marginBottom: '12px',
-                  paddingBottom: '8px',
-                  borderBottom: '1px solid #e2e8f0'
-                }}>
-                  <Label className="text-xs font-medium">Test Case #{index + 1}</Label>
-                  {testCases.length > 1 && (
-                    <Button
-                      onClick={() => removeTestCase(index)}
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6 p-0"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-                
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(8, 1fr)', 
-                  gap: '12px',
-                  minWidth: '1400px'
-                }}>
-                  <div>
-                    <Label className="text-xs">ID</Label>
-                    <Input
-                      value={testCase.id}
-                      onChange={(e) => updateTestCase(index, 'id', e.target.value)}
-                      placeholder="TC-001"
-                      className="text-xs"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs">Test Case</Label>
-                    <Input
-                      value={testCase.testCase}
-                      onChange={(e) => updateTestCase(index, 'testCase', e.target.value)}
-                      placeholder="SQL Injection Test"
-                      className="text-xs"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs">Category</Label>
-                    <Input
-                      value={testCase.category}
-                      onChange={(e) => updateTestCase(index, 'category', e.target.value)}
-                      placeholder="Injection"
-                      className="text-xs"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs">Exploited</Label>
-                    <Select value={testCase.exploited} onValueChange={(value) => updateTestCase(index, 'exploited', value)}>
-                      <SelectTrigger className="text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Yes">Yes</SelectItem>
-                        <SelectItem value="No">No</SelectItem>
-                        <SelectItem value="Partial">Partial</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs">URL Reference</Label>
-                    <Input
-                      value={testCase.url}
-                      onChange={(e) => updateTestCase(index, 'url', e.target.value)}
-                      placeholder="https://example.com/vuln"
-                      className="text-xs"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs">Evidence Path</Label>
-                    <div className="flex gap-1">
-                      <Textarea
-                        value={testCase.evidence}
-                        onChange={(e) => updateTestCase(index, 'evidence', e.target.value)}
-                        placeholder="./evidence/tc-001-evidence1.png&#10;./evidence/tc-001-evidence2.png"
-                        className="text-xs min-h-[60px] resize-none font-mono text-[10px]"
-                        rows={3}
-                      />
-                      <Button
-                        onClick={() => triggerEvidenceUpload(index)}
-                        size="sm"
-                        variant="outline"
-                        className="px-2 shrink-0"
-                        title="Upload screenshots"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <input
-                        ref={(el) => fileInputRefs.current[index] = el}
-                        type="file"
-                        multiple
-                        accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
-                        onChange={(e) => {
-                          console.log('File input changed, files:', e.target.files?.length);
-                          if (e.target.files && e.target.files.length > 0) {
-                            handleEvidenceUpload(index, e.target.files);
-                            // Reset the input so the same files can be selected again if needed
-                            e.target.value = '';
-                          }
-                        }}
-                        className="hidden"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs">Remediation</Label>
-                    <Select value={testCase.remediation} onValueChange={(value) => updateTestCase(index, 'remediation', value)}>
-                      <SelectTrigger className="text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="Fixed">Fixed</SelectItem>
-                        <SelectItem value="Won't Fix">Won't Fix</SelectItem>
-                        <SelectItem value="Mitigated">Mitigated</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs">Tester Name</Label>
-                    <Input
-                      value={testCase.tester}
-                      onChange={(e) => updateTestCase(index, 'tester', e.target.value)}
-                      placeholder="John Doe"
-                      className="text-xs"
-                    />
-                  </div>
-                </div>
+    <Card className="w-[800px] max-w-[90vw] p-4 bg-background border-border">
+      <Handle type="target" position={Position.Top} />
+      <div className="flex items-center justify-between mb-2"><div className="flex items-center gap-2"><Table className="h-4 w-4 text-primary" /><span className="text-sm font-medium">Test Cases Table</span></div><Button onClick={addTestCase} size="sm" variant="outline"><Plus className="h-3 w-3 mr-1" /> Add Row</Button></div>
+      <div className="flex items-center justify-center gap-4 my-2"><Button onClick={() => scroll(-200, 0)} size="icon" variant="outline"><ChevronLeft className="h-4 w-4" /></Button><div className="flex flex-col gap-1"><Button onClick={() => scroll(0, -150)} size="icon" variant="outline"><ChevronUp className="h-4 w-4" /></Button><Button onClick={() => scroll(0, 150)} size="icon" variant="outline"><ChevronDown className="h-4 w-4" /></Button></div><Button onClick={() => scroll(200, 0)} size="icon" variant="outline"><ChevronRight className="h-4 w-4" /></Button></div>
+      <div ref={scrollContainerRef} className="h-[400px] overflow-auto border rounded-lg p-2 bg-muted/20"><div className="space-y-4 min-w-[1400px]">
+        {testCases.map((tc, index) => (
+          <div key={index} className="p-3 border rounded-lg bg-card">
+            <div className="flex justify-between items-center mb-2"><Label className="text-sm font-medium">Test Case #{index + 1}</Label><Button onClick={() => removeTestCase(index)} size="sm" variant="destructive" disabled={testCases.length <= 1}><Trash2 className="h-3 w-3 mr-1" /> Remove</Button></div>
+            <div className="grid grid-cols-8 gap-2">
+              <div><Label className="text-xs">ID (*Required)</Label><Input value={tc.id} onChange={(e) => updateTestCaseField(index, 'id', e.target.value)} className="text-xs" /></div>
+              <div><Label className="text-xs">Test Case</Label><Input value={tc.testCase} onChange={(e) => updateTestCaseField(index, 'testCase', e.target.value)} className="text-xs" /></div>
+              <div><Label className="text-xs">Category</Label><Input value={tc.category} onChange={(e) => updateTestCaseField(index, 'category', e.target.value)} className="text-xs" /></div>
+              <div><Label className="text-xs">Exploited</Label><Select value={tc.exploited} onValueChange={(v) => updateTestCaseField(index, 'exploited', v)}><SelectTrigger className="text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Yes">Yes</SelectItem><SelectItem value="No">No</SelectItem></SelectContent></Select></div>
+              <div><Label className="text-xs">URL</Label><Input value={tc.url} onChange={(e) => updateTestCaseField(index, 'url', e.target.value)} className="text-xs" /></div>
+              <div className="col-span-1"><Label className="text-xs">Evidence</Label><div className="space-y-1 mt-1 max-h-20 overflow-y-auto">{tc.evidence.map((ev, evIndex) => (<div key={evIndex} className="flex items-center justify-between bg-background p-1 rounded text-xs" title={ev.path}><span className="truncate">{ev.name}</span><Button size="icon" variant="ghost" className="h-5 w-5 shrink-0" onClick={() => removeEvidence(index, evIndex)}><X className="h-3 w-3"/></Button></div>))}</div><Button size="sm" variant="outline" className="w-full mt-2 text-xs" disabled={!tc.id.trim()} onClick={() => fileInputRefs.current[index]?.click()}><FileUp className="h-3 w-3 mr-1"/> Upload</Button><input ref={el => fileInputRefs.current[index] = el} type="file" multiple accept="image/*" className="hidden" onChange={(e) => e.target.files && handleEvidenceUpload(index, e.target.files)} /></div>
+              
+              {/* --- CHANGE IS HERE --- */}
+              <div>
+                <Label className="text-xs">Status</Label>
+                <Select value={tc.status} onValueChange={(v) => updateTestCaseField(index, 'status', v)}>
+                  <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pass">Pass</SelectItem>
+                    <SelectItem value="Fail">Fail</SelectItem>
+                    <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+              {/* --- END OF CHANGE --- */}
 
-      <Handle type="source" position={Position.Bottom} className="w-2 h-2" />
+              <div><Label className="text-xs">Tester</Label><Input value={tc.tester} onChange={(e) => updateTestCaseField(index, 'tester', e.target.value)} className="text-xs" /></div>
+            </div>
+          </div>
+        ))}
+      </div></div>
+      <Handle type="source" position={Position.Bottom} />
     </Card>
   );
 });

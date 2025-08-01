@@ -1,6 +1,7 @@
-import { Node, Edge } from '@xyflow/react';
+import { Node } from '@xyflow/react';
+import { NodeData } from './nodes/types';
 
-export const initialNodes: Node[] = [
+export const initialNodes: Node<NodeData>[] = [
   {
     id: 'header-1',
     type: 'sectionHeader',
@@ -8,7 +9,7 @@ export const initialNodes: Node[] = [
     data: { 
       label: 'Main Title',
       title: 'Security Testing Report',
-      level: 'h1'
+      level: 'h1',
     },
   },
   {
@@ -18,49 +19,8 @@ export const initialNodes: Node[] = [
     data: { 
       label: 'Project Name',
       placeholder: 'Enter project name...',
-      value: ''
-    },
-  },
-  {
-    id: 'scope-section',
-    type: 'sectionHeader',
-    position: { x: 100, y: 320 },
-    data: { 
-      label: 'Scope Section',
-      title: 'Scope of Work',
-      level: 'h2'
-    },
-  },
-  {
-    id: 'scope-text',
-    type: 'textInput',
-    position: { x: 100, y: 450 },
-    data: { 
-      label: 'Scope Description',
-      placeholder: 'Describe the scope of testing...',
-      multiline: true,
-      value: ''
-    },
-  },
-  {
-    id: 'test-cases-header',
-    type: 'sectionHeader',
-    position: { x: 500, y: 50 },
-    data: { 
-      label: 'Test Cases Section',
-      title: 'Test Cases',
-      level: 'h2'
-    },
-  },
-  {
-    id: 'test-cases-table',
-    type: 'table',
-    position: { x: 500, y: 180 },
-    data: { 
-      label: 'Test Cases Table',
-      testCases: []
+      fieldType: 'projectName',
+      value: 'My Awesome Project',
     },
   },
 ];
-
-export const initialEdges: Edge[] = [];

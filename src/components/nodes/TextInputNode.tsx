@@ -1,216 +1,84 @@
-import React, { memo, useState } from 'react';
-import { debugLogger } from '../DebugLogger';
+import React, { memo, useState, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Type } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Type, Link } from 'lucide-react';
+import { NodeData } from './types';
 
 interface TextInputNodeProps {
-  data: {
-    label: string;
-    value?: string;
-    placeholder?: string;
-    multiline?: boolean;
-    fieldType?: string; // Add fieldType to the interface
-    updateNodeData?: (nodeId: string, field: string, value: any) => void;
-  };
+  data: NodeData;
   id: string;
 }
 
 export const TextInputNode = memo<TextInputNodeProps>(({ data, id }) => {
-  const updateNodeData = data.updateNodeData; // Get from data prop
+  const { updateNodeData, fieldType } = data;
+  
   const [value, setValue] = useState(data.value || '');
-  const [placeholder, setPlaceholder] = useState(data.placeholder || 'Enter text...');
+  const [url, setUrl] = useState(data.url || ''); // State for the new URL field
   const [multiline, setMultiline] = useState(data.multiline || false);
-  const [label, setLabel] = useState(data.label || 'Text Input');
+
+  useEffect(() => {
+    if (data.value !== value) setValue(data.value || '');
+    if (data.url !== url) setUrl(data.url || '');
+  }, [data.value, data.url]);
 
   const handleValueChange = (newValue: string) => {
-    debugLogger.info('TEXT_INPUT', '🔥 VALUE CHANGE TRIGGERED', { 
-      nodeId: id, 
-      fieldType: data.fieldType, 
-      value: newValue,
-      previousValue: value,
-      hasUpdateNodeData: !!updateNodeData,
-      label: data.label
-    });
-    
     setValue(newValue);
-    if (updateNodeData) {
-      debugLogger.info('TEXT_INPUT', '📡 CALLING updateNodeData', { 
-        nodeId: id, 
-        field: 'value', 
-        value: newValue, 
-        fieldType: data.fieldType 
-      });
-      updateNodeData(id, 'value', newValue);
-      debugLogger.success('TEXT_INPUT', '✅ updateNodeData called successfully');
-    } else {
-      debugLogger.error('TEXT_INPUT', '❌ updateNodeData NOT AVAILABLE', { 
-        nodeId: id, 
-        fieldType: data.fieldType,
-        dataKeys: Object.keys(data)
-      });
-    }
+    updateNodeData?.(id, 'value', newValue);
+  };
+  
+  const handleUrlChange = (newUrl: string) => {
+    setUrl(newUrl);
+    updateNodeData?.(id, 'url', newUrl);
   };
 
-  // Sync with external data changes and ensure value persists
-  React.useEffect(() => {
-    if (data.value !== undefined && data.value !== value) {
-      debugLogger.debug('TEXT_INPUT', 'Syncing external data change', { 
-        nodeId: id, 
-        newValue: data.value, 
-        currentValue: value 
-      });
-      setValue(data.value);
-    }
-  }, [data.value, value, id]);
-
-  debugLogger.info('TEXT_INPUT', '🎯 COMPONENT RENDER', { 
-    nodeId: id, 
-    hasUpdateNodeData: !!updateNodeData, 
-    currentValue: value, 
-    fieldType: data.fieldType, 
-    label: data.label,
-    placeholder: data.placeholder,
-    allDataProps: Object.keys(data)
-  });
-
   return (
-    <Card className="w-80 p-4 bg-gradient-to-br from-card to-accent/30 border-border shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm">
-      <Handle type="target" position={Position.Top} className="w-3 h-3 border-2 border-card" />
+    <Card className="w-80 p-4 bg-background border-border shadow-md">
+      <Handle type="target" position={Position.Top} />
       
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <Type className="h-4 w-4 text-primary" />
-        </div>
-        <Input
-          value={label}
-          onChange={(e) => {
-            e.stopPropagation();
-            const newLabel = e.target.value;
-            console.log('🔥 LABEL CHANGE DETECTED:', { nodeId: id, newLabel, fieldType: data.fieldType });
-            setLabel(newLabel);
-            // The label IS the actual value for the field type
-            if (updateNodeData && data.fieldType) {
-              console.log('🚀 SENDING LABEL AS PRIMARY VALUE:', { nodeId: id, value: newLabel, fieldType: data.fieldType });
-              debugLogger.info('TEXT_INPUT', '🏷️ LABEL AS PRIMARY VALUE', { 
-                nodeId: id, 
-                label: newLabel, 
-                fieldType: data.fieldType,
-                mapping: 'This is the main field value'
-              });
-              updateNodeData(id, 'value', newLabel); // Send label as the main value
-            } else {
-              console.log('❌ NO UPDATE FUNCTION:', { hasUpdateNodeData: !!updateNodeData, fieldType: data.fieldType });
-            }
-          }}
-          onMouseDown={(e) => e.stopPropagation()}
-          className="text-sm font-semibold border-none p-0 h-auto bg-transparent focus:ring-0 focus:border-transparent nodrag nopan"
-          placeholder="Field label"
-        />
+      <div className="flex items-center gap-2 mb-3">
+        <Type className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium">{data.label}</span>
       </div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor={`${id}-placeholder`} className="text-xs font-medium text-muted-foreground">
-            Placeholder Text
-          </Label>
-          <Input
-            id={`${id}-placeholder`}
-            value={placeholder}
-            onChange={(e) => {
-              e.stopPropagation();
-              const newPlaceholder = e.target.value;
-              setPlaceholder(newPlaceholder);
-              // Also update the report data with the placeholder
-              if (updateNodeData) {
-                debugLogger.info('TEXT_INPUT', '📝 PLACEHOLDER CHANGED', { nodeId: id, placeholder: newPlaceholder, fieldType: data.fieldType });
-                updateNodeData(id, 'placeholder', newPlaceholder);
-              }
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            className="modern-input text-xs nodrag nopan"
-            placeholder="Enter placeholder..."
-          />
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label htmlFor={`${id}-multiline`} className="text-xs">Multi-line</Label>
+          <Switch id={`${id}-multiline`} checked={multiline} onCheckedChange={setMultiline} />
         </div>
-
-        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-          <Label htmlFor={`${id}-multiline`} className="text-xs font-medium">
-            Multi-line text
-          </Label>
-          <Switch
-            id={`${id}-multiline`}
-            checked={multiline}
-            onCheckedChange={setMultiline}
-            className="data-[state=checked]:bg-primary"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor={`${id}-value`} className="text-xs font-medium text-muted-foreground">
-            Additional Notes (Optional)
-          </Label>
+        
+        <div>
+          <Label htmlFor={`${id}-value`} className="text-xs">Content</Label>
           {multiline ? (
-            <Textarea
-              id={`${id}-value`}
-              value={value}
-              onChange={(e) => {
-                e.stopPropagation(); 
-                const newValue = e.target.value;
-                debugLogger.info('TEXT_INPUT', '⌨️ TEXTAREA onChange - SECONDARY CONTENT', { 
-                  nodeId: id, 
-                  value: newValue, 
-                  fieldType: data.fieldType,
-                  event: 'textarea',
-                  note: 'This is additional content, not the main field value'
-                });
-                // Don't call handleValueChange here since label is the primary value
-              }}
-              onFocus={(e) => {
-                e.stopPropagation();
-                debugLogger.debug('TEXT_INPUT', 'Textarea focused', { nodeId: id });
-              }}
-              onMouseDown={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
-              placeholder={placeholder}
-              className="modern-input min-h-20 resize-none nodrag nopan"
-              style={{ pointerEvents: 'auto' }}
-            />
+            <Textarea id={`${id}-value`} value={value} onChange={(e) => handleValueChange(e.target.value)} placeholder={data.placeholder} className="mt-1 min-h-24 nodrag nopan" />
           ) : (
-            <Input
-              id={`${id}-value`}
-              value={value}
-              onChange={(e) => {
-                e.stopPropagation();
-                const newValue = e.target.value;
-                debugLogger.info('TEXT_INPUT', '⌨️ INPUT onChange - SECONDARY CONTENT', { 
-                  nodeId: id, 
-                  value: newValue, 
-                  fieldType: data.fieldType,
-                  event: 'input',
-                  note: 'This is additional content, not the main field value'
-                });
-                // Don't call handleValueChange here since label is the primary value
-              }}
-              onFocus={(e) => {
-                e.stopPropagation();
-                debugLogger.debug('TEXT_INPUT', 'Input focused', { nodeId: id });
-              }}
-              onMouseDown={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
-              placeholder={placeholder}
-              className="modern-input nodrag nopan"
-              style={{ pointerEvents: 'auto' }}
-            />
+            <Input id={`${id}-value`} value={value} onChange={(e) => handleValueChange(e.target.value)} placeholder={data.placeholder} className="mt-1 nodrag nopan" />
           )}
         </div>
+
+        {/* --- NEW URL FIELD LOGIC --- */}
+        {/* This block will only render if the node is a "Baselines" type */}
+        {fieldType === 'baselines' && (
+          <div>
+            <Label htmlFor={`${id}-url`} className="text-xs flex items-center gap-1">
+              <Link className="h-3 w-3" />
+              Reference URL (Optional)
+            </Label>
+            <Input
+              id={`${id}-url`}
+              value={url}
+              onChange={(e) => handleUrlChange(e.target.value)}
+              placeholder="https://example.com/baseline-doc"
+              className="mt-1 nodrag nopan"
+            />
+          </div>
+        )}
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3 border-2 border-card" />
+      <Handle type="source" position={Position.Bottom} />
     </Card>
   );
 });

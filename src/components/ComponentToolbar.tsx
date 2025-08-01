@@ -1,15 +1,16 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { 
-  Type, 
-  Table, 
-  Code, 
-  Upload, 
+import {
+  Type,
+  Table,
+  Code,
+  Upload,
   Heading,
-  FileText,
-  Link
+  Link,
+  ListOrdered
 } from 'lucide-react';
 
+// This array now contains ALL of your components.
 const components = [
   {
     type: 'sectionHeader',
@@ -21,14 +22,14 @@ const components = [
     type: 'textInput',
     label: 'Project Name',
     icon: Type,
-    description: 'Add project title',
+    description: 'Add the main project title',
     fieldType: 'projectName'
   },
   {
     type: 'textInput',
     label: 'Scope Field',
     icon: Type,
-    description: 'Define scope of work',
+    description: 'Define the scope of work',
     fieldType: 'scope'
   },
   {
@@ -40,33 +41,38 @@ const components = [
   },
   {
     type: 'linkedStories',
-    label: 'Linked Stories',
+    label: 'Linked Stories (Jira)',
     icon: Link,
-    description: 'Change description & story links'
+    description: 'Link to Jira tickets or stories'
   },
   {
     type: 'table',
     label: 'Test Cases Table',
     icon: Table,
-    description: 'Structured test case data'
+    description: 'A detailed table for test cases'
   },
   {
     type: 'codeSnippet',
     label: 'Code Snippet',
     icon: Code,
-    description: 'HTTP requests/responses'
+    description: 'For HTTP requests or code blocks'
   },
   {
     type: 'fileUpload',
     label: 'File Upload',
     icon: Upload,
-    description: 'Screenshots, PDFs, docs'
+    description: 'Attach images or documents'
+  },
+  {
+    type: 'steps',
+    label: 'Steps to Reproduce',
+    icon: ListOrdered,
+    description: 'Create a numbered list of steps'
   }
 ];
 
 export const ComponentToolbar: React.FC = () => {
   const onDragStart = (event: React.DragEvent, nodeType: string, fieldType?: string) => {
-    console.log('Drag started:', nodeType, fieldType);
     event.dataTransfer.setData('application/reactflow', nodeType);
     if (fieldType) {
       event.dataTransfer.setData('application/fieldtype', fieldType);
@@ -74,48 +80,30 @@ export const ComponentToolbar: React.FC = () => {
     event.dataTransfer.effectAllowed = 'move';
   };
 
-  const onDragEnd = (event: React.DragEvent) => {
-    console.log('Drag ended');
-  };
-
   return (
-    <div className="p-6 space-y-6">
-      <h3 className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-3">
-        <div className="w-2 h-2 bg-gradient-to-r from-primary to-primary/60 rounded-full animate-pulse"></div>
-        Report Components
-        <div className="flex-1 h-px bg-gradient-to-r from-border/50 to-transparent"></div>
-      </h3>
-      
-      <div className="space-y-3 pb-4">
-        {components.map((component, index) => {
-          const Icon = component.icon;
-          return (
-            <Card
-              key={`${component.type}-${component.fieldType || component.label}`}
-              className="component-card p-4 cursor-grab active:cursor-grabbing transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/10 group bg-gradient-to-r from-card/80 to-accent/20 border-border/50 backdrop-blur-sm animate-fade-in hover:border-primary/30"
-              draggable
-              onDragStart={(event) => onDragStart(event, component.type, component.fieldType)}
-              onDragEnd={onDragEnd}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 group-hover:scale-110">
-                  <Icon className="h-4 w-4 text-primary group-hover:text-primary/90 transition-colors duration-300" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
-                    {component.label}
-                  </p>
-                  <p className="text-xs text-muted-foreground/80 leading-relaxed mt-1 group-hover:text-muted-foreground transition-colors duration-300">
-                    {component.description}
-                  </p>
-                </div>
-                <div className="w-2 h-2 bg-primary/30 rounded-full group-hover:bg-primary/60 transition-all duration-300 group-hover:scale-125"></div>
+    <div className="p-4 space-y-3">
+      <h3 className="text-sm font-semibold text-muted-foreground mb-2">Report Components</h3>
+      {components.map((component) => {
+        const Icon = component.icon;
+        return (
+          <Card
+            key={`${component.type}-${component.fieldType || component.label}`}
+            className="p-3 cursor-grab active:cursor-grabbing hover:shadow-lg hover:border-primary/30 transition-all group"
+            draggable
+            onDragStart={(event) => onDragStart(event, component.type, component.fieldType)}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-muted rounded-md group-hover:bg-primary/10 transition-colors">
+                <Icon className="h-5 w-5 text-primary" />
               </div>
-            </Card>
-          );
-        })}
-      </div>
+              <div>
+                <p className="font-semibold text-sm group-hover:text-primary">{component.label}</p>
+                <p className="text-xs text-muted-foreground">{component.description}</p>
+              </div>
+            </div>
+          </Card>
+        );
+      })}
     </div>
   );
 };

@@ -1,300 +1,88 @@
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { UploadedFile, NodeData } from './nodes/types';
+import { Button } from './ui/button';
+import { ExternalLink } from 'lucide-react';
 
-interface ReportData {
-  projectName: string;
-  scope: string;
-  baselines: string;
-  testCases: Array<{
-    id: string;
-    testCase: string;
-    category: string;
-    exploited: string;
-    url: string;
-    evidence: string;
-    remediation: string;
-    tester: string;
-  }>;
-  changeDescription: string;
-  linkedStories: Array<{
-    id: string;
-    title: string;
-    url: string;
-    description: string;
-  }>;
-  codeSnippets: Array<{
-    nodeId?: string;
-    title: string;
-    content: string;
-    language: string;
-  }>;
-  attachments: Array<{
-    name: string;
-    url: string;
-    type: string;
-  }>;
-}
+export interface ReportComponent { type: 'sectionHeader' | 'textInput' | 'table' | 'codeSnippet' | 'linkedStories' | 'fileUpload' | 'steps' | string; data: NodeData; }
+interface ReportPreviewProps { reportComponents: ReportComponent[] | null; }
 
-interface ReportPreviewProps {
-  reportData: ReportData;
-}
+const isImageFile = (filename: string): boolean => /\.(jpe?g|png|gif|webp|svg)$/i.test(filename);
+const EmptyPlaceholder: React.FC<{ text?: string }> = ({ text = "[No content provided]" }) => <p className="text-muted-foreground italic my-2">{text}</p>;
 
-export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportData }) => {
-  // Check if we have any meaningful data
-  const hasData = reportData.projectName || 
-                 reportData.scope || 
-                 reportData.baselines || 
-                 reportData.testCases.length > 0 || 
-                 reportData.changeDescription || 
-                 reportData.linkedStories.length > 0 || 
-                 reportData.codeSnippets.length > 0 || 
-                 reportData.attachments.length > 0;
-  const renderContent = () => {
-    const sections = [];
-
-    // Only add content if it actually exists - no placeholders
-    if (reportData.projectName) {
-      sections.push(
-        <h1 key="title" className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-6">
-          {reportData.projectName}
-        </h1>
-      );
-    }
-
-    if (reportData.scope) {
-      sections.push(
-        <div key="scope" className="mb-8">
-          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
-            Scope of Work
-          </h2>
-          <p className="text-muted-foreground">{reportData.scope}</p>
-        </div>
-      );
-    }
-
-    if (reportData.baselines) {
-      sections.push(
-        <div key="baselines" className="mb-8">
-          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
-            Baselines for Review
-          </h2>
-          <p className="text-muted-foreground">{reportData.baselines}</p>
-        </div>
-      );
-    }
-
-    if (reportData.testCases.length > 0) {
-      sections.push(
-        <div key="testcases" className="mb-8">
-          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
-            Test Cases
-          </h2>
-          <div className="overflow-x-auto my-6">
-            <table className="min-w-full border-collapse border border-border rounded-lg overflow-hidden shadow-sm">
-              <thead>
-                <tr>
-                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">ID</th>
-                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Test Case</th>
-                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Category</th>
-                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Exploited</th>
-                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">URL Reference</th>
-                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Evidence Path</th>
-                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Remediation Status</th>
-                  <th className="border border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 text-left font-semibold text-foreground">Tester Name</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reportData.testCases.map((tc, index) => (
-                  <tr key={index}>
-                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.id}</td>
-                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.testCase}</td>
-                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.category}</td>
-                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.exploited}</td>
-                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.url}</td>
-                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.evidence}</td>
-                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.remediation}</td>
-                    <td className="border border-border px-4 py-3 text-muted-foreground hover:bg-accent/20 transition-colors duration-200">{tc.tester}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      );
-    }
-
-    if (reportData.changeDescription || reportData.linkedStories.length > 0) {
-      sections.push(
-        <div key="changes" className="mb-8">
-          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
-            Change Description & Linked Stories
-          </h2>
-          {reportData.changeDescription && (
-            <div className="mb-6">
-              <h3 className="text-lg font-medium text-foreground mb-2">Change Description</h3>
-              <p className="text-muted-foreground">{reportData.changeDescription}</p>
-            </div>
-          )}
-          {reportData.linkedStories.length > 0 && (
-            <div>
-              <h3 className="text-lg font-medium text-foreground mb-4">Linked Stories</h3>
-              <div className="space-y-4">
-                {reportData.linkedStories.map((story, index) => (
-                  <div key={index} className="border border-border rounded-lg p-4 bg-muted/20">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-primary">{story.id}</span>
-                        <span className="text-sm text-muted-foreground">•</span>
-                        <h4 className="text-sm font-medium text-foreground">{story.title}</h4>
-                      </div>
-                      {story.url && (
-                        <a 
-                          href={story.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline text-sm"
-                        >
-                          View Story →
-                        </a>
-                      )}
-                    </div>
-                    {story.description && (
-                      <p className="text-sm text-muted-foreground mt-2">{story.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    if (reportData.codeSnippets.length > 0) {
-      sections.push(
-        <div key="codesnippets" className="mb-8">
-          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
-            Code Snippets & HTTP Traffic
-          </h2>
-          {reportData.codeSnippets.map((snippet, index) => (
-            <div key={index} className="mb-8">
-              <h3 className="text-xl font-medium text-foreground mt-6 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-                {snippet.title}
-                <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded-full font-mono">
-                  {snippet.language}
-                </span>
-              </h3>
-              
-              {snippet.language === 'http' && snippet.content.includes('## HTTP Request') ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* HTTP Request */}
-                  {snippet.content.includes('## HTTP Request') && (
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 overflow-hidden">
-                      <div className="bg-blue-600 text-white px-4 py-3 font-semibold flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
-                        </svg>
-                        HTTP Request
-                      </div>
-                      <div className="p-4">
-                        <pre className="bg-white dark:bg-gray-900 p-4 rounded border text-sm font-mono overflow-x-auto whitespace-pre-wrap">
-                          {snippet.content.split('## HTTP Request')[1]?.split('```http')[1]?.split('```')[0]?.trim() || 'No request data'}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* HTTP Response */}
-                  {snippet.content.includes('## HTTP Response') && (
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 rounded-lg border border-green-200 dark:border-green-800 overflow-hidden">
-                      <div className="bg-green-600 text-white px-4 py-3 font-semibold flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
-                        </svg>
-                        HTTP Response
-                      </div>
-                      <div className="p-4">
-                        <pre className="bg-white dark:bg-gray-900 p-4 rounded border text-sm font-mono overflow-x-auto whitespace-pre-wrap">
-                          {snippet.content.split('## HTTP Response')[1]?.split('```http')[1]?.split('```')[0]?.trim() || 'No response data'}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950/30 dark:to-gray-800/20 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                  <div className="bg-gray-700 text-white px-4 py-3 font-semibold flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                    </svg>
-                    {snippet.language.toUpperCase()} Code
-                  </div>
-                  <div className="p-4">
-                    <pre className="bg-white dark:bg-gray-900 p-4 rounded border text-sm font-mono overflow-x-auto whitespace-pre-wrap">
-                      {snippet.content}
-                    </pre>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (reportData.attachments.length > 0) {
-      sections.push(
-        <div key="attachments" className="mb-8">
-          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">
-            Attachments
-          </h2>
-          <ul className="list-disc list-inside space-y-2 my-4 text-muted-foreground">
-            {reportData.attachments.map((att, index) => (
-              <li key={index} className="hover:text-foreground transition-colors duration-200">
-                <a href={att.url} className="text-primary hover:underline">{att.name}</a> ({att.type})
-              </li>
-            ))}
-          </ul>
-        </div>
-      );
-    }
-
-    // If there's no content, show empty state
-    if (sections.length === 0) {
+const ComponentRenderer: React.FC<{ component: ReportComponent }> = ({ component }) => {
+  const { type, data } = component;
+  switch (type) {
+    case 'sectionHeader': return <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">{data.title || <EmptyPlaceholder text="[Empty Header]" />}</h2>;
+    case 'textInput':
+      if (data.fieldType === 'projectName') return <h1 className="text-3xl font-bold text-primary mb-6">{data.value || <EmptyPlaceholder text="[No Project Name]" />}</h1>;
+      const titles: { [key: string]: string } = { scope: "Scope of Work", baselines: "Baselines for Review" };
       return (
-        <div className="text-center text-muted-foreground py-12">
-          <p className="text-lg font-medium mb-2">Your report preview will appear here</p>
-          <p className="text-sm">Drag components from the sidebar and fill them out to see your content</p>
+        <div>
+          {titles[data.fieldType] && <h3 className="text-xl font-semibold mt-6 mb-3">{titles[data.fieldType]}</h3>}
+          {data.value ? <p className="text-muted-foreground whitespace-pre-wrap">{data.value}</p> : <EmptyPlaceholder />}
+          {data.fieldType === 'baselines' && data.url && (
+            <Button asChild variant="link" className="p-0 h-auto mt-2">
+              <a href={data.url} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View Baseline URL
+              </a>
+            </Button>
+          )}
         </div>
       );
-    }
-
-    return sections;
-  };
-
-  return (
-    <div className="h-full bg-gradient-to-br from-background to-card/30">
-      <div className="border-b border-border p-4 bg-gradient-to-r from-card/50 to-accent/20 backdrop-blur-sm">
-        <h2 className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-          Live Preview
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          GitHub-style markdown preview of your security report
-        </p>
-      </div>
-      
-      <ScrollArea className="flex-1 h-[calc(100vh-8rem)]">
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="bg-card/50 backdrop-blur-sm rounded-lg border border-border p-8 shadow-lg min-h-[200px]">
-            <div className="max-w-none">
-              {renderContent()}
-            </div>
-          </div>
+    case 'table':
+      return (
+        <div className="my-6"><h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">Test Cases</h2><div className="overflow-x-auto"><table className="min-w-full border-collapse border border-border mt-4">
+          <thead><tr>{['ID', 'Test Case', 'Category', 'Exploited', 'URL', 'Evidence', 'Status', 'Tester'].map(h => <th key={h} className="border bg-muted px-4 py-2 text-left">{h}</th>)}</tr></thead>
+          <tbody>
+            {(data.testCases && data.testCases.length > 0) ? (
+              data.testCases.map((tc: any, index: number) => (
+                <tr key={index}>
+                  <td className="border px-4 py-2">{tc.id}</td><td className="border px-4 py-2">{tc.testCase}</td><td className="border px-4 py-2">{tc.category}</td><td className="border px-4 py-2">{tc.exploited}</td><td className="border px-4 py-2">{tc.url}</td>
+                  <td className="border px-4 py-2">{(tc.evidence || []).map((ev: UploadedFile, i: number) => <span key={i} className="block font-mono text-xs">{ev.path}</span>)}</td>
+                  <td className="border px-4 py-2">{tc.status}</td><td className="border px-4 py-2">{tc.tester}</td>
+                </tr>
+              ))
+            ) : ( <tr><td colSpan={8} className="text-center p-4 text-muted-foreground italic">No test cases added.</td></tr> )}
+          </tbody>
+        </table></div></div>
+      );
+    case 'codeSnippet': return <div className="my-6"><h3 className="text-xl font-semibold mt-6 mb-3">{data.title || "Code Snippet"}</h3>{data.content ? <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto"><code>{data.content}</code></pre> : <EmptyPlaceholder />}</div>;
+    case 'linkedStories': return <div className="my-6"><h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">Change Description & Stories</h2>{data.changeDescription ? <p className="mb-4">{data.changeDescription}</p> : <EmptyPlaceholder text="[No change description provided]" />}{(data.linkedStories && data.linkedStories.length > 0) ? <ul className="list-disc list-inside space-y-2">{data.linkedStories.map((story: any, index: number) => <li key={index}><strong>{story.id}:</strong> {story.title}</li>)}</ul> : <EmptyPlaceholder text="[No linked stories]" />}</div>;
+    case 'fileUpload':
+      return (
+        <div className="my-6"><h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">Attachments</h2>
+          {(data.files && data.files.length > 0) ? (
+            <div className="mt-2 space-y-2">{data.files.map((file: UploadedFile, index: number) => isImageFile(file.name) ? <img key={index} src={file.previewUrl} alt={file.name} className="max-w-[300px] border rounded" /> : <div key={index} className="font-mono text-xs">{file.path}</div>)}</div>
+          ) : <EmptyPlaceholder text="[No files attached]" />}
         </div>
-      </ScrollArea>
-    </div>
+      );
+    case 'steps':
+        return (
+            <div className="my-6">
+                <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">Steps to Reproduce</h2>
+                {(data.steps && data.steps.length > 0 && data.steps.some((s:any) => s.text)) ? (
+                    <ol className="list-decimal list-inside space-y-4 mt-4">
+                        {data.steps.map((step: any) => (
+                            <li key={step.id}>
+                                <p className="mb-2">{step.text || <EmptyPlaceholder />}</p>
+                                {step.image && isImageFile(step.image.name) && ( <img src={step.image.previewUrl} alt={`Screenshot for step`} className="max-w-md border rounded-md ml-6 my-2" /> )}
+                            </li>
+                        ))}
+                    </ol>
+                ) : <EmptyPlaceholder text="[No steps provided]" />}
+            </div>
+        );
+    default: return null;
+  }
+};
+export const ReportPreview: React.FC<ReportPreviewProps> = ({ reportComponents }) => {
+  return (
+    <div className="h-full bg-background"><ScrollArea className="h-full"><div className="max-w-4xl mx-auto p-8"><div className="bg-card rounded-lg border border-border p-8 shadow-lg min-h-[200px]"><div className="prose dark:prose-invert max-w-none">
+      {!reportComponents || reportComponents.length === 0 ? (
+        <div className="text-center text-muted-foreground py-12"><p className="text-lg font-medium mb-2">The preview is empty.</p><p className="text-sm">Add or fill out components in the builder and click "Show Preview".</p></div>
+      ) : ( reportComponents.map((component, index) => <ComponentRenderer key={`${component.type}-${index}`} component={component} />) )}
+    </div></div></div></ScrollArea></div>
   );
 };
