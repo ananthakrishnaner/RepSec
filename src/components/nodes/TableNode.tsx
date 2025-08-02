@@ -1,5 +1,5 @@
-import React, { memo, useState, useRef, useEffect } from 'react';
-import { Handle, Position, NodeResizer } from '@xyflow/react';
+import React, { memo, useRef } from 'react';
+import { Handle, Position, NodeResizer, NodeProps } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -7,35 +7,39 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, Plus, X, FileUp, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { UploadedFile, NodeData } from './types';
+import { UploadedFile, NodeData, TestCase } from './types';
 
-interface TestCase { id: string; testCase: string; category: string; exploited: string; url: string; evidence: UploadedFile[]; status: string; tester: string; }
-interface TableNodeProps { data: NodeData; id: string; selected: boolean; }
-
+// The function to create a new, empty test case row
 const createNewTestCase = (): TestCase => ({ id: '', testCase: '', category: '', exploited: 'No', url: '', evidence: [], status: 'Not Applicable', tester: '' });
 
-export const TableNode = memo<TableNodeProps>(({ data, id, selected }) => {
-  const { updateNodeData } = data;
+export const TableNode = memo(({ data, id, selected }: NodeProps<NodeData>) => {
+  const { updateNodeData, testCases = [] } = data; // Directly use testCases from props, provide a fallback
   const { toast } = useToast();
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [testCases, setTestCases] = useState<TestCase[]>(data.testCases || [createNewTestCase()]);
 
-  useEffect(() => {
-    return () => { testCases.forEach(tc => tc.evidence.forEach(ev => URL.revokeObjectURL(ev.previewUrl))); };
-  }, [testCases]);
+  // This node no longer has its own `useState` for testCases.
+  // It is now a "controlled component".
 
-  const updateTestCasesState = (newTestCases: TestCase[]) => { setTestCases(newTestCases); updateNodeData?.(id, 'testCases', newTestCases); };
-  const addTestCase = () => updateTestCasesState([...testCases, createNewTestCase()]);
-  const removeTestCase = (index: number) => {
+  const syncTestCases = (newTestCases: TestCase[]) => {
+    updateNodeData?.(id, 'testCases', newTestCases);
+  };
+
+  const addTestCase = () => syncTestCases([...testCases, createNewTestCase()]);
+  
+  const removeTestCase = (indexToRemove: number) => {
     if (testCases.length <= 1) return toast({ title: "Cannot remove the last row", variant: "destructive" });
-    testCases[index].evidence.forEach(ev => URL.revokeObjectURL(ev.previewUrl));
-    updateTestCasesState(testCases.filter((_, i) => i !== index));
+    const tcToRemove = testCases[indexToRemove];
+    tcToRemove.evidence.forEach(ev => URL.revokeObjectURL(ev.previewUrl));
+    syncTestCases(testCases.filter((_, i) => i !== indexToRemove));
   };
+
   const updateTestCaseField = (index: number, field: keyof TestCase, value: any) => {
-    const updated = [...testCases]; updated[index] = { ...updated[index], [field]: value };
-    updateTestCasesState(updated);
+    const updated = [...testCases];
+    updated[index] = { ...updated[index], [field]: value };
+    syncTestCases(updated);
   };
+
   const handleEvidenceUpload = (tcIndex: number, files: FileList) => {
     const testCaseId = testCases[tcIndex].id.trim();
     if (!testCaseId) return toast({ title: "Please provide a Test Case ID first.", variant: "destructive" });
@@ -44,17 +48,19 @@ export const TableNode = memo<TableNodeProps>(({ data, id, selected }) => {
       const safeId = testCaseId.replace(/[^a-zA-Z0-9-]/g, '_');
       const newFileName = `${safeId}-evidence-${testCases[tcIndex].evidence.length + i + 1}.${extension}`;
       const newPath = `./evidence/${newFileName}`;
-      return { name: file.name, path: newPath, file: file, previewUrl: URL.createObjectURL(file) };
+      return { name: file.name, path: newPath, file, previewUrl: URL.createObjectURL(file) };
     });
     if (newEvidence.length > 0) {
       updateTestCaseField(tcIndex, 'evidence', [...testCases[tcIndex].evidence, ...newEvidence]);
       toast({ title: "Evidence prepared and renamed." });
     }
   };
+  
   const removeEvidence = (tcIndex: number, evIndex: number) => {
     URL.revokeObjectURL(testCases[tcIndex].evidence[evIndex].previewUrl);
     updateTestCaseField(tcIndex, 'evidence', testCases[tcIndex].evidence.filter((_, i) => i !== evIndex));
   };
+  
   const scroll = (x: number, y: number) => scrollContainerRef.current?.scrollBy({ left: x, top: y, behavior: 'smooth' });
 
   return (
@@ -65,7 +71,7 @@ export const TableNode = memo<TableNodeProps>(({ data, id, selected }) => {
       <div className="flex items-center justify-center gap-4 my-2 shrink-0"><Button onClick={() => scroll(-200, 0)} size="icon" variant="outline"><ChevronLeft className="h-4 w-4" /></Button><div className="flex flex-col gap-1"><Button onClick={() => scroll(0, -150)} size="icon" variant="outline"><ChevronUp className="h-4 w-4" /></Button><Button onClick={() => scroll(0, 150)} size="icon" variant="outline"><ChevronDown className="h-4 w-4" /></Button></div><Button onClick={() => scroll(200, 0)} size="icon" variant="outline"><ChevronRight className="h-4 w-4" /></Button></div>
       <div ref={scrollContainerRef} className="flex-1 overflow-auto border rounded-lg p-2 bg-muted/20">
         <div className="space-y-4 min-w-[1400px]">
-          {testCases.map((tc, index) => (
+          {(testCases.length > 0 ? testCases : [createNewTestCase()]).map((tc, index) => (
             <div key={index} className="p-3 border rounded-lg bg-card">
               <div className="flex justify-between items-center mb-2"><Label className="text-sm font-medium">Test Case #{index + 1}</Label><Button onClick={() => removeTestCase(index)} size="sm" variant="destructive" disabled={testCases.length <= 1}><Trash2 className="h-3 w-3 mr-1" /> Remove</Button></div>
               <div className="grid grid-cols-8 gap-2">

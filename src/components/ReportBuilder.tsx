@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Edge, Node, Background, Controls, MiniMap } from '@xyflow/react';
+import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Edge, Node, Background, Controls, MiniMap, ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import JSZip from 'jszip';
 import html2pdf from 'html2pdf.js';
@@ -8,8 +8,11 @@ import { createRoot } from 'react-dom/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ReportPreview, ReportComponent } from './ReportPreview';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, Wrench, Trash2, FileArchive, Download, Upload, GitBranch, FileJson, FileText } from 'lucide-react';
+import { Eye, Wrench, Trash2, FileArchive, Download, Upload, GitBranch, FileJson, FileText, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 import { ComponentToolbar } from './ComponentToolbar';
 import { TextInputNode } from './nodes/TextInputNode';
@@ -19,6 +22,7 @@ import { FileUploadNode } from './nodes/FileUploadNode';
 import { SectionHeaderNode } from './nodes/SectionHeaderNode';
 import { LinkedStoriesNode } from './nodes/LinkedStoriesNode';
 import { StepsNode } from './nodes/StepsNode';
+import { AIGeneratorNode } from './nodes/AIGeneratorNode';
 import { initialNodes as defaultInitialNodes } from './initialElements';
 import { UploadedFile, NodeData } from './nodes/types';
 import { getLayoutedElements } from '@/lib/layout';
@@ -28,12 +32,41 @@ const nodeIdCounter = { current: 0 };
 const getId = () => `dndnode_${nodeIdCounter.current++}`;
 const isImageFile = (filename: string): boolean => /\.(jpe?g|png|gif|webp|svg)$/i.test(filename);
 
-export const ReportBuilder: React.FC = () => {
+const SettingsModal = () => {
+    const { toast } = useToast();
+    const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
+    const handleSave = () => {
+        localStorage.setItem('gemini_api_key', apiKey);
+        toast({ title: "Settings Saved", description: "Your Gemini API Key has been saved locally." });
+    };
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="outline" size="icon" className="absolute top-2 right-2 z-10 bg-background/50 h-8 w-8"><Settings className="h-4 w-4" /></Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Settings</DialogTitle>
+                    <DialogDescription>Manage application settings. Your keys are saved securely in your browser's local storage.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="gemini-key">Gemini API Key</Label>
+                        <Input id="gemini-key" type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="Enter your Google AI Studio API Key" />
+                    </div>
+                </div>
+                <DialogFooter><Button onClick={handleSave}>Save Changes</Button></DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+const ReportBuilderInner = () => {
   const { toast } = useToast();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [previewData, setPreviewData] = useState<ReportComponent[] | null>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
-
+  
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
     setNodes((currentNodes) =>
       currentNodes.map((node) => node.id === nodeId ? { ...node, data: { ...node.data, [field]: value } } : node)
@@ -44,7 +77,7 @@ export const ReportBuilder: React.FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(runtimeInitialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const nodeTypes = { textInput: TextInputNode, table: TableNode, codeSnippet: CodeSnippetNode, fileUpload: FileUploadNode, sectionHeader: SectionHeaderNode, linkedStories: LinkedStoriesNode, steps: StepsNode };
+  const nodeTypes = { textInput: TextInputNode, table: TableNode, codeSnippet: CodeSnippetNode, fileUpload: FileUploadNode, sectionHeader: SectionHeaderNode, linkedStories: LinkedStoriesNode, steps: StepsNode, aiGenerator: AIGeneratorNode };
   
   const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
   const onDragOver = useCallback((event: React.DragEvent) => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }, []);
@@ -56,7 +89,8 @@ export const ReportBuilder: React.FC = () => {
     if (!type) return;
     const position = { x: event.clientX - reactFlowBounds.left, y: event.clientY - reactFlowBounds.top };
     const newNodeData: NodeData = { label: `${type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')}`, fieldType: fieldType || '', updateNodeData };
-    const newNode: Node<NodeData> = { id: getId(), type, position, data: newNodeData };
+    if (type === 'table') newNodeData.testCases = [];
+    const newNode: Node<NodeData> = { id: getId(), type, position, data: newNodeData, style: { width: type === 'table' ? 800 : type === 'steps' || type === 'linkedStories' ? 500 : 350 }};
     setNodes((nds) => nds.concat(newNode));
   }, [updateNodeData, setNodes]);
 
@@ -158,23 +192,13 @@ export const ReportBuilder: React.FC = () => {
   const clearAllData = () => { if (window.confirm('Clear the canvas and all uploaded files?')) { setNodes([]); setEdges([]); setPreviewData(null); toast({ title: "Canvas Cleared" }); }};
 
   const handleExportPdf = async () => {
-    setIsExportingPdf(true);
-    toast({ title: "Generating PDF...", description: "This may take a moment." });
+    setIsExportingPdf(true); toast({ title: "Generating PDF...", description: "This may take a moment." });
     const reportData = generateReportFromNodes(nodes);
     const pdfContainer = document.createElement('div');
-    pdfContainer.style.position = 'absolute';
-    pdfContainer.style.left = '-9999px';
-    pdfContainer.style.width = '8.5in';
+    pdfContainer.style.position = 'absolute'; pdfContainer.style.left = '-9999px'; pdfContainer.style.width = '8.5in';
     document.body.appendChild(pdfContainer);
     const root = createRoot(pdfContainer);
-    await new Promise<void>((resolve) => {
-      root.render(
-        <React.StrictMode>
-          <PdfTemplate reportComponents={reportData} />
-        </React.StrictMode>
-      );
-      setTimeout(resolve, 500);
-    });
+    await new Promise<void>((resolve) => { root.render( <React.StrictMode><PdfTemplate reportComponents={reportData} /></React.StrictMode> ); setTimeout(resolve, 500); });
     const elementToCapture = pdfContainer.querySelector('#pdf-content-wrapper');
     if (elementToCapture) {
       const projectNameComponent = nodes.find(n => n.data.fieldType === 'projectName');
@@ -183,14 +207,9 @@ export const ReportBuilder: React.FC = () => {
       try {
         await html2pdf().from(elementToCapture).set(options).save();
         toast({ title: "PDF Exported Successfully!" });
-      } catch (error) {
-        toast({ title: "PDF Export Failed", description: "An error occurred.", variant: "destructive" });
-      }
-    } else {
-      toast({ title: "Error: Could not find PDF template to render.", variant: "destructive" });
-    }
-    root.unmount();
-    document.body.removeChild(pdfContainer);
+      } catch (error) { toast({ title: "PDF Export Failed", description: "An error occurred.", variant: "destructive" }); }
+    } else { toast({ title: "Error: Could not find PDF template to render.", variant: "destructive" }); }
+    root.unmount(); document.body.removeChild(pdfContainer);
     setIsExportingPdf(false);
   };
 
@@ -200,7 +219,7 @@ export const ReportBuilder: React.FC = () => {
     <>
       <div className="h-screen bg-background overflow-hidden flex">
         <div className="w-80 border-r border-border/50 bg-card/50 flex flex-col h-full">
-          <div className="p-4 border-b border-border/30"><h2 className="text-xl font-bold text-primary">RepSec Builder</h2><p className="text-sm text-muted-foreground">Visual Security Report Generator</p></div>
+          <div className="p-4 border-b border-border/30 relative"><h2 className="text-xl font-bold text-primary">RepSec Builder</h2><p className="text-sm text-muted-foreground">Visual Security Report Generator</p><SettingsModal/></div>
           <div className="flex-1 overflow-y-auto"><ComponentToolbar /></div>
           <div className="p-4 border-t border-border/30 space-y-2">
             <div className="grid grid-cols-2 gap-2">
@@ -220,11 +239,22 @@ export const ReportBuilder: React.FC = () => {
           </div>
         </div>
         <div className="flex-1 flex flex-col">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col"><TabsList className="shrink-0 border-b border-border/30 bg-card/20 rounded-none p-0 h-14"><TabsTrigger value="builder" className="h-full rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"><Wrench className="w-4 h-4 mr-2" />Builder</TabsTrigger><TabsTrigger value="preview" className="h-full rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"><Eye className="w-4 h-4 mr-2"/>Preview</TabsTrigger></TabsList><TabsContent value="builder" className="flex-1 m-0"><div ref={reactFlowWrapper} className="h-full w-full"><ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} nodeTypes={nodeTypes} fitView><Background /><Controls /><MiniMap /></ReactFlow></div></TabsContent><TabsContent value="preview" className="flex-1 m-0 h-full overflow-y-auto bg-muted/20"><ReportPreview reportComponents={previewData} /></TabsContent></Tabs></div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <TabsList className="shrink-0 border-b border-border/30 bg-card/20 rounded-none p-0 h-14"><TabsTrigger value="builder" className="h-full rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"><Wrench className="w-4 h-4 mr-2" />Builder</TabsTrigger><TabsTrigger value="preview" className="h-full rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"><Eye className="w-4 h-4 mr-2"/>Preview</TabsTrigger></TabsList>
+            <TabsContent value="builder" className="flex-1 m-0">
+              <div ref={reactFlowWrapper} className="h-full w-full">
+                <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} nodeTypes={nodeTypes} fitView nodesResizable>
+                  <Background /><Controls /><MiniMap />
+                </ReactFlow>
+              </div>
+            </TabsContent>
+            <TabsContent value="preview" className="flex-1 m-0 h-full overflow-y-auto bg-muted/20"><ReportPreview reportComponents={previewData} /></TabsContent>
+          </Tabs>
+        </div>
       </div>
-      <div id="pdf-render-target" style={{ position: 'fixed', left: '-9999px', top: '0px', zIndex: -100, width: '8.5in', pointerEvents: 'none' }}>
-          {/* This div is used as a target for dynamically rendering the PDF template */}
-      </div>
+      <div id="pdf-render-target" style={{ position: 'fixed', left: '-9999px', pointerEvents: 'none', width: '8.5in' }}></div>
     </>
   );
 };
+
+export const ReportBuilderContainer: React.FC = () => ( <ReactFlowProvider><ReportBuilderInner /></ReactFlowProvider> );
