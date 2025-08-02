@@ -41,20 +41,10 @@ const SettingsModal = () => {
     };
     return (
         <Dialog>
-            <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="absolute top-2 right-2 z-10 bg-background/50 h-8 w-8"><Settings className="h-4 w-4" /></Button>
-            </DialogTrigger>
+            <DialogTrigger asChild><Button variant="outline" size="icon" className="absolute top-2 right-2 z-10 bg-background/50 h-8 w-8"><Settings className="h-4 w-4" /></Button></DialogTrigger>
             <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Settings</DialogTitle>
-                    <DialogDescription>Manage application settings. Your keys are saved securely in your browser's local storage.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="gemini-key">Gemini API Key</Label>
-                        <Input id="gemini-key" type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="Enter your Google AI Studio API Key" />
-                    </div>
-                </div>
+                <DialogHeader><DialogTitle>Settings</DialogTitle><DialogDescription>Manage application settings. Your keys are saved securely in your browser's local storage.</DialogDescription></DialogHeader>
+                <div className="space-y-4 py-4"><div className="space-y-2"><Label htmlFor="gemini-key">Gemini API Key</Label><Input id="gemini-key" type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="Enter your Google AI Studio API Key" /></div></div>
                 <DialogFooter><Button onClick={handleSave}>Save Changes</Button></DialogFooter>
             </DialogContent>
         </Dialog>
@@ -88,8 +78,7 @@ const ReportBuilderInner = () => {
     const type = event.dataTransfer.getData('application/reactflow'); const fieldType = event.dataTransfer.getData('application/fieldtype');
     if (!type) return;
     const position = { x: event.clientX - reactFlowBounds.left, y: event.clientY - reactFlowBounds.top };
-    const newNodeData: NodeData = { label: `${type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')}`, fieldType: fieldType || '', updateNodeData };
-    if (type === 'table') newNodeData.testCases = [];
+    const newNodeData: NodeData = { label: `${type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')}`, fieldType: fieldType || '', updateNodeData, value: '', title: '', level: 'h2', multiline: false, placeholder: 'Enter content...', testCases: [], changeDescription: '', linkedStories: [], content: '', language: 'text', files: [], steps: [], url: '' };
     const newNode: Node<NodeData> = { id: getId(), type, position, data: newNodeData, style: { width: type === 'table' ? 800 : type === 'steps' || type === 'linkedStories' ? 500 : 350 }};
     setNodes((nds) => nds.concat(newNode));
   }, [updateNodeData, setNodes]);
@@ -219,7 +208,7 @@ const ReportBuilderInner = () => {
     <>
       <div className="h-screen bg-background overflow-hidden flex">
         <div className="w-80 border-r border-border/50 bg-card/50 flex flex-col h-full">
-          <div className="p-4 border-b border-border/30 relative"><h2 className="text-xl font-bold text-primary">RepSec Builder</h2><p className="text-sm text-muted-foreground">Visual Security Report Generator</p><SettingsModal/></div>
+          <div className="p-4 border-b border-border/30 relative"><h2 className="text-xl font-bold text-primary">RepSec Builder</h2><p className="text-sm text-muted-foreground">Visual Report Generator</p><SettingsModal/></div>
           <div className="flex-1 overflow-y-auto"><ComponentToolbar /></div>
           <div className="p-4 border-t border-border/30 space-y-2">
             <div className="grid grid-cols-2 gap-2">
@@ -240,7 +229,10 @@ const ReportBuilderInner = () => {
         </div>
         <div className="flex-1 flex flex-col">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="shrink-0 border-b border-border/30 bg-card/20 rounded-none p-0 h-14"><TabsTrigger value="builder" className="h-full rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"><Wrench className="w-4 h-4 mr-2" />Builder</TabsTrigger><TabsTrigger value="preview" className="h-full rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"><Eye className="w-4 h-4 mr-2"/>Preview</TabsTrigger></TabsList>
+            <TabsList className="shrink-0 border-b border-border/30 bg-card/20 rounded-none p-0 h-14">
+              <TabsTrigger value="builder" className="h-full rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"><Wrench className="w-4 h-4 mr-2" />Builder</TabsTrigger>
+              <TabsTrigger value="preview" className="h-full rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"><Eye className="w-4 h-4 mr-2"/>Preview</TabsTrigger>
+            </TabsList>
             <TabsContent value="builder" className="flex-1 m-0">
               <div ref={reactFlowWrapper} className="h-full w-full">
                 <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} nodeTypes={nodeTypes} fitView nodesResizable>
@@ -248,7 +240,9 @@ const ReportBuilderInner = () => {
                 </ReactFlow>
               </div>
             </TabsContent>
-            <TabsContent value="preview" className="flex-1 m-0 h-full overflow-y-auto bg-muted/20"><ReportPreview reportComponents={previewData} /></TabsContent>
+            <TabsContent value="preview" className="flex-1 m-0 h-full overflow-y-auto bg-muted/20">
+              <ReportPreview reportComponents={previewData} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
@@ -257,4 +251,8 @@ const ReportBuilderInner = () => {
   );
 };
 
-export const ReportBuilderContainer: React.FC = () => ( <ReactFlowProvider><ReportBuilderInner /></ReactFlowProvider> );
+export const ReportBuilderContainer: React.FC = () => (
+  <ReactFlowProvider>
+    <ReportBuilderInner />
+  </ReactFlowProvider>
+);
