@@ -28,7 +28,6 @@
   * { @apply border-border; }
   body { @apply bg-background text-foreground; font-feature-settings: "rlig" 1, "calt" 1; }
 }
-
 /* --- PDF STYLES --- */
 /* These styles are applied to the dynamically created container */
 @layer components {
@@ -61,4 +60,13 @@
   .pdf-container .attachment-file { font-family: monospace; font-size: 9pt; background-color: #edf2f7; padding: 1rem; border-radius: 4px; }
   .pdf-container .link-list { list-style: none; padding-left: 0; }
   .pdf-container .link-list li { background-color: #f7fafc; padding: 8px; border-radius: 4px; margin-bottom: 4px; }
+}
+
+/* --- NEW RESIZE HANDLE STYLES --- */
+.react-flow__node-resizer {
+  border: 1px solid hsl(var(--primary));
+  background: hsl(var(--background));
+  border-radius: 2px;
+  width: 10px;
+  height: 10px;
 }

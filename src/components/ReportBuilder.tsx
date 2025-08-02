@@ -43,6 +43,7 @@ export const ReportBuilder: React.FC = () => {
   const runtimeInitialNodes: Node<NodeData>[] = defaultInitialNodes.map(node => ({ ...node, data: { ...node.data, updateNodeData } }));
   const [nodes, setNodes, onNodesChange] = useNodesState(runtimeInitialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
   const nodeTypes = { textInput: TextInputNode, table: TableNode, codeSnippet: CodeSnippetNode, fileUpload: FileUploadNode, sectionHeader: SectionHeaderNode, linkedStories: LinkedStoriesNode, steps: StepsNode };
   
   const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
@@ -94,7 +95,6 @@ export const ReportBuilder: React.FC = () => {
   const generateReportFromNodes = (currentNodes: Node<NodeData>[]): ReportComponent[] => {
     return [...currentNodes].sort((a, b) => a.position.y - b.position.y).map(node => ({ type: node.type as ReportComponent['type'], data: node.data }));
   };
-
   const handleShowPreview = () => { setPreviewData(generateReportFromNodes(nodes)); setActiveTab('preview'); };
   
   const generateMarkdownContent = (components: ReportComponent[]): string => {
@@ -160,16 +160,13 @@ export const ReportBuilder: React.FC = () => {
   const handleExportPdf = async () => {
     setIsExportingPdf(true);
     toast({ title: "Generating PDF...", description: "This may take a moment." });
-
     const reportData = generateReportFromNodes(nodes);
     const pdfContainer = document.createElement('div');
     pdfContainer.style.position = 'absolute';
     pdfContainer.style.left = '-9999px';
     pdfContainer.style.width = '8.5in';
     document.body.appendChild(pdfContainer);
-    
     const root = createRoot(pdfContainer);
-
     await new Promise<void>((resolve) => {
       root.render(
         <React.StrictMode>
@@ -178,9 +175,7 @@ export const ReportBuilder: React.FC = () => {
       );
       setTimeout(resolve, 500);
     });
-
     const elementToCapture = pdfContainer.querySelector('#pdf-content-wrapper');
-
     if (elementToCapture) {
       const projectNameComponent = nodes.find(n => n.data.fieldType === 'projectName');
       const filename = projectNameComponent ? `${projectNameComponent.data.value}_SecurityReport.pdf` : 'SecurityReport.pdf';
@@ -194,7 +189,6 @@ export const ReportBuilder: React.FC = () => {
     } else {
       toast({ title: "Error: Could not find PDF template to render.", variant: "destructive" });
     }
-
     root.unmount();
     document.body.removeChild(pdfContainer);
     setIsExportingPdf(false);
@@ -228,9 +222,9 @@ export const ReportBuilder: React.FC = () => {
         <div className="flex-1 flex flex-col">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col"><TabsList className="shrink-0 border-b border-border/30 bg-card/20 rounded-none p-0 h-14"><TabsTrigger value="builder" className="h-full rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"><Wrench className="w-4 h-4 mr-2" />Builder</TabsTrigger><TabsTrigger value="preview" className="h-full rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"><Eye className="w-4 h-4 mr-2"/>Preview</TabsTrigger></TabsList><TabsContent value="builder" className="flex-1 m-0"><div ref={reactFlowWrapper} className="h-full w-full"><ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} nodeTypes={nodeTypes} fitView><Background /><Controls /><MiniMap /></ReactFlow></div></TabsContent><TabsContent value="preview" className="flex-1 m-0 h-full overflow-y-auto bg-muted/20"><ReportPreview reportComponents={previewData} /></TabsContent></Tabs></div>
       </div>
-      
-      {/* Hidden PDF Template: Rendered only during export, but this outer div is always here */}
-      <div id="pdf-render-target" style={{ position: 'fixed', left: '-9999px', top: '0px', zIndex: -100, width: '8.5in', pointerEvents: 'none' }}></div>
+      <div id="pdf-render-target" style={{ position: 'fixed', left: '-9999px', top: '0px', zIndex: -100, width: '8.5in', pointerEvents: 'none' }}>
+          {/* This div is used as a target for dynamically rendering the PDF template */}
+      </div>
     </>
   );
 };
