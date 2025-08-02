@@ -2,14 +2,18 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { TestCase } from "@/components/nodes/types";
 
 // --- CHANGE IS HERE ---
-// The example now shows an empty "url" field to guide the AI.
+// The example now shows a generic, sequential ID to guide the AI.
 const expectedJsonFormat = `[
-  { "id": "TC-BAC-001", "testCase": "Attempt to access admin endpoint as a normal user", "category": "Broken Access Control", "url": "", "exploited": "No", "status": "Not Applicable", "tester": "" }
+  { "id": "TC-001", "testCase": "Attempt to access admin endpoint as a normal user", "category": "Broken Access Control", "url": "", "exploited": "No", "status": "Not Applicable", "tester": "" },
+  { "id": "TC-002", "testCase": "Submit SQL injection payload ' OR 1=1 -- to username field", "category": "Injection", "url": "", "exploited": "No", "status": "Not Applicable", "tester": "" }
 ]`;
 
 export async function generateComprehensiveTestPlan(
     apiKey: string, 
-    scope: string, 
+    scope: string,
+    makerRole: string,
+    checkerRole: string,
+    action: string,
     intensity: 'focused' | 'comprehensive'
 ): Promise<TestCase[]> {
   
@@ -18,33 +22,38 @@ export async function generateComprehensiveTestPlan(
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-  const temperature = intensity === 'comprehensive' ? 0.9 : 0.4;
+  const temperature = intensity === 'comprehensive' ? 0.8 : 0.3;
 
   const fullPrompt = `
-    **Persona:** You are a creative, world-class principal penetration tester. Your goal is to find edge cases and unique attack vectors that others might miss.
+    **Persona:** You are a Principal Security Engineer specializing in authorization and complex business logic flaws.
 
     **Task:**
-    Analyze the provided "Scope of Test" and generate a comprehensive list of at least 15-20 diverse security test cases based on the OWASP Top 10 framework.
+    Your task is to generate a comprehensive set of security test cases for a "Maker-Checker" (two-step approval) workflow. Analyze the provided context and create a diverse list of tests focusing on bypassing or exploiting this authorization flow. Do not generate simple or repetitive tests.
 
-    **Scope of Test:**
-    ---
-    ${scope}
-    ---
-    
+    **Context of the Maker-Checker Flow:**
+    - **Maker Role:** ${makerRole}
+    - **Checker Role:** ${checkerRole}
+    - **Action Being Performed:** ${action}
+    - **General Scope:** ${scope}
+
+    **Your primary goal is to test for the following critical vulnerability patterns:**
+    1.  Authorization Bypass
+    2.  Privilege Escalation
+    3.  Data Tampering (TOCTOU)
+    4.  Insecure Direct Object Reference (IDOR)
+    5.  State Confusion
+    6.  Cross-Site Request Forgery (CSRF)
+
     **Instructions:**
-    1.  **Analyze Scope:** Identify key features from the scope.
-    2.  **Generate Diverse Vectors:** For each feature, create relevant and unique test cases from multiple applicable OWASP categories. AVOID creating simple, repetitive checks.
-    3.  **Create Unique IDs:** Create a unique, descriptive ID for each test case (e.g., TC-BAC-001).
+    - **Create a generic, sequential ID for each test case, starting with "TC-001" and incrementing for each subsequent case (TC-002, TC-003, etc.).**  <-- THIS IS THE NEW INSTRUCTION
+    - The category MUST be a specific, professional vulnerability type.
+    - The test case description MUST be a clear, actionable instruction.
 
     **CRITICAL OUTPUT FORMAT REQUIREMENTS:**
     - Your entire response MUST be a valid JSON array of objects.
-    - Do NOT include any introductory text, explanations, or markdown formatting like \`\`\`json.
-    - Each object in the array MUST contain all of the following keys: "id", "testCase", "category", "url", "exploited", "status", "tester".
-    - The "exploited" value MUST be "No".
-    - The "status" value MUST be "Not Applicable".
-    - The "tester" value MUST be an empty string.
-    - **The "url" value MUST be an empty string.** <-- THIS IS THE NEW INSTRUCTION
-
+    - Do NOT include any introductory text, explanations, or markdown formatting.
+    - Each object in the array MUST contain "id", "testCase", "category", "url", "exploited", "status", "tester".
+    - "exploited" MUST be "No", "status" MUST be "Not Applicable", "tester" and "url" MUST be empty strings.
     - Example of required output format: ${expectedJsonFormat}
   `;
 
