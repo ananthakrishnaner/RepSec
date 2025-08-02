@@ -4,26 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input'; // <-- Import Input
 import { Bot, Zap, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { NodeData, TestCase } from './types';
-import { generateComprehensiveTestPlan } from '@/lib/gemini'; // <-- Using the new intelligent function
+import { generateComprehensiveTestPlan } from '@/lib/gemini';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export const AIGeneratorNode = memo(({ id, data, selected }: NodeProps<NodeData>) => {
   const { getEdges, setNodes } = useReactFlow();
   const { toast } = useToast();
 
-  const [scope, setScope] = useState('');
-  const [makerRole, setMakerRole] = useState('');
-  const [checkerRole, setCheckerRole] = useState('');
-  const [action, setAction] = useState('');
+  const [prompt, setPrompt] = useState('');
   const [intensity, setIntensity] = useState<'focused' | 'comprehensive'>('focused');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const canGenerate = makerRole && checkerRole && action;
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -46,7 +40,7 @@ export const AIGeneratorNode = memo(({ id, data, selected }: NodeProps<NodeData>
     const targetTableId = targetEdge.target;
 
     try {
-      const newTestCases = await generateComprehensiveTestPlan(apiKey, scope, makerRole, checkerRole, action, intensity);
+      const newTestCases = await generateComprehensiveTestPlan(apiKey, prompt, intensity);
 
       if (!Array.isArray(newTestCases)) { throw new Error("AI response was not a valid list."); }
       
@@ -73,31 +67,24 @@ export const AIGeneratorNode = memo(({ id, data, selected }: NodeProps<NodeData>
 
   return (
     <Card className="w-full h-full p-0 bg-background border-border flex flex-col shadow-lg border-2 border-purple-500/50">
-      <NodeResizer minWidth={380} minHeight={500} isVisible={selected} />
+      <NodeResizer minWidth={380} minHeight={350} isVisible={selected} />
       <Handle type="target" position={Position.Top} isConnectable={false} />
       <CardHeader className="flex-shrink-0 flex-row items-center space-x-2 bg-purple-500/10 p-3">
         <Bot className="h-6 w-6 text-purple-500" />
-        <CardTitle className="text-base text-purple-400">{data.label || 'Authorization Test Plan Generator'}</CardTitle>
+        <CardTitle className="text-base text-purple-400">{data.label || 'AI Test Plan Generator'}</CardTitle>
       </CardHeader>
       <CardContent className="p-3 space-y-3 flex-1 flex flex-col min-h-0">
-        <div className="grid grid-cols-2 gap-2">
-            <div>
-                <Label htmlFor={`${id}-maker`} className="text-xs">Maker Role</Label>
-                <Input id={`${id}-maker`} value={makerRole} onChange={(e) => setMakerRole(e.target.value)} placeholder="e.g., Bank Clerk" className="text-xs nodrag nopan" />
-            </div>
-            <div>
-                <Label htmlFor={`${id}-checker`} className="text-xs">Checker Role</Label>
-                <Input id={`${id}-checker`} value={checkerRole} onChange={(e) => setCheckerRole(e.target.value)} placeholder="e.g., Branch Manager" className="text-xs nodrag nopan" />
-            </div>
-        </div>
-        <div>
-            <Label htmlFor={`${id}-action`} className="text-xs">Action Being Performed</Label>
-            <Input id={`${id}-action`} value={action} onChange={(e) => setAction(e.target.value)} placeholder="e.g., Approving a money transfer > $10,000" className="text-xs nodrag nopan" />
-        </div>
         <div className="flex-1 flex flex-col">
-          <Label htmlFor={`${id}-scope`}>Additional Scope/Context (Optional)</Label>
-          <Textarea id={`${id}-scope`} value={scope} onChange={(e) => setScope(e.target.value)} placeholder="e.g., API endpoint is /api/v1/transfers. The request body includes 'amount' and 'recipientId'." className="flex-1 text-xs nodrag nopan" />
+          <Label htmlFor={`${id}-prompt`}>Workflow Description</Label>
+          <Textarea 
+            id={`${id}-prompt`} 
+            value={prompt} 
+            onChange={(e) => setPrompt(e.target.value)} 
+            placeholder="Be descriptive! For maker-checker flows, mention both roles and the action. E.g., 'A bank clerk (maker) can initiate a wire transfer over $10k, but it must be approved by a branch manager (checker).'"
+            className="flex-1 text-xs nodrag nopan"
+          />
         </div>
+        
         <div className="space-y-2">
             <Label>Generation Intensity</Label>
             <RadioGroup defaultValue="focused" value={intensity} onValueChange={(val) => setIntensity(val as 'focused' | 'comprehensive')} className="flex items-center space-x-4 nodrag nopan">
@@ -105,7 +92,8 @@ export const AIGeneratorNode = memo(({ id, data, selected }: NodeProps<NodeData>
                 <div className="flex items-center space-x-2"><RadioGroupItem value="comprehensive" id={`${id}-r2`} /><Label htmlFor={`${id}-r2`} className="text-xs">Comprehensive</Label></div>
             </RadioGroup>
         </div>
-        <Button onClick={handleGenerate} disabled={isLoading || !canGenerate} className="w-full bg-purple-600 hover:bg-purple-700">
+
+        <Button onClick={handleGenerate} disabled={isLoading || !prompt.trim()} className="w-full bg-purple-600 hover:bg-purple-700">
           {isLoading ? ( <Loader2 className="h-4 w-4 mr-2 animate-spin" /> ) : ( <Zap className="h-4 w-4 mr-2" /> )}
           Generate Test Plan
         </Button>

@@ -1,19 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { TestCase } from "@/components/nodes/types";
 
-// --- CHANGE IS HERE ---
-// The example now shows a generic, sequential ID to guide the AI.
 const expectedJsonFormat = `[
-  { "id": "TC-001", "testCase": "Attempt to access admin endpoint as a normal user", "category": "Broken Access Control", "url": "", "exploited": "No", "status": "Not Applicable", "tester": "" },
-  { "id": "TC-002", "testCase": "Submit SQL injection payload ' OR 1=1 -- to username field", "category": "Injection", "url": "", "exploited": "No", "status": "Not Applicable", "tester": "" }
+  { "id": "TC-001", "testCase": "As the Maker, create a valid, low-impact request. Intercept and note the request ID. Then, immediately send a second, unauthorized request to an update endpoint (e.g., PUT /api/requests/{id}) to change critical data (e.g., amount, recipient) before the Checker approves the original.", "category": "Data Tampering (TOCTOU)", "url": "", "exploited": "No", "status": "Not Applicable", "tester": "" }
 ]`;
 
 export async function generateComprehensiveTestPlan(
     apiKey: string, 
-    scope: string,
-    makerRole: string,
-    checkerRole: string,
-    action: string,
+    userPrompt: string, 
     intensity: 'focused' | 'comprehensive'
 ): Promise<TestCase[]> {
   
@@ -25,35 +19,34 @@ export async function generateComprehensiveTestPlan(
   const temperature = intensity === 'comprehensive' ? 0.8 : 0.3;
 
   const fullPrompt = `
-    **Persona:** You are a Principal Security Engineer specializing in authorization and complex business logic flaws.
+    **Persona:** You are a world-class Principal Security Engineer specializing in authorization, business logic, and complex workflow vulnerabilities.
 
     **Task:**
-    Your task is to generate a comprehensive set of security test cases for a "Maker-Checker" (two-step approval) workflow. Analyze the provided context and create a diverse list of tests focusing on bypassing or exploiting this authorization flow. Do not generate simple or repetitive tests.
+    Your task is to analyze the user's description of a workflow and generate a comprehensive security test plan. The test cases must be intelligent, diverse, and focus on unique attack vectors.
 
-    **Context of the Maker-Checker Flow:**
-    - **Maker Role:** ${makerRole}
-    - **Checker Role:** ${checkerRole}
-    - **Action Being Performed:** ${action}
-    - **General Scope:** ${scope}
-
-    **Your primary goal is to test for the following critical vulnerability patterns:**
-    1.  Authorization Bypass
-    2.  Privilege Escalation
-    3.  Data Tampering (TOCTOU)
-    4.  Insecure Direct Object Reference (IDOR)
-    5.  State Confusion
-    6.  Cross-Site Request Forgery (CSRF)
-
-    **Instructions:**
-    - **Create a generic, sequential ID for each test case, starting with "TC-001" and incrementing for each subsequent case (TC-002, TC-003, etc.).**  <-- THIS IS THE NEW INSTRUCTION
-    - The category MUST be a specific, professional vulnerability type.
-    - The test case description MUST be a clear, actionable instruction.
+    **User's Workflow Description:**
+    ---
+    ${userPrompt}
+    ---
+    
+    **Your Thought Process:**
+    1.  **Deconstruct the Input:** First, carefully read the user's description. Identify the key actors or roles (e.g., "Maker," "Checker," "Clerk," "Manager"). Identify the critical state-changing action being performed (e.g., "transfer funds," "publish article," "create user").
+    2.  **Apply Security Frameworks:** Based on the roles and action, create test cases that probe for common vulnerabilities in such systems, focusing heavily on:
+        *   **Authorization Bypasses:** Can the Maker perform the Checker's final approval action?
+        *   **Time-of-Check to Time-of-Use (TOCTOU) / Data Tampering:** Can the Maker alter the transaction *after* submission but *before* approval? This is a high-priority test.
+        *   **Privilege Escalation:** Can a lower-privilege user act as the Maker or Checker?
+        *   **Insecure Direct Object Reference (IDOR):** Can User A act upon a transaction created by User B?
+        *   **State Confusion:** Can an already approved or rejected request be re-submitted or re-approved?
+        *   **General OWASP Top 10:** If the scope mentions APIs or user input, include relevant Injection, XSS, and Security Misconfiguration tests.
+    3.  **Ensure Diversity:** Do not generate repetitive tests. Each test case should represent a unique attack vector or approach.
 
     **CRITICAL OUTPUT FORMAT REQUIREMENTS:**
     - Your entire response MUST be a valid JSON array of objects.
-    - Do NOT include any introductory text, explanations, or markdown formatting.
-    - Each object in the array MUST contain "id", "testCase", "category", "url", "exploited", "status", "tester".
-    - "exploited" MUST be "No", "status" MUST be "Not Applicable", "tester" and "url" MUST be empty strings.
+    - Do NOT include any introductory text, explanations, or markdown formatting like \`\`\`json.
+    - Each object in the array MUST contain all the following keys: "id", "testCase", "category", "url", "exploited", "status", "tester".
+    - "id" MUST be a generic, sequential ID (e.g., "TC-001", "TC-002").
+    - "exploited" MUST be "No", "status" MUST be "Not Applicable".
+    - "tester" and "url" MUST be empty strings.
     - Example of required output format: ${expectedJsonFormat}
   `;
 
