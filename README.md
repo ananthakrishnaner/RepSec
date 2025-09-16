@@ -129,16 +129,3 @@ To deploy RepSec to a hosting service like Vercel, Netlify, or your own server, 
 
 ---
 
-
-| Tean                  | Product Name                        | Application Type       |
-|-----------------------|-------------------------------------|------------------------|
-| Swift Payment         | Swift Alliance Access               | Web Application        |
-|                       | Endda                               | Web Application        |
-|                       | EnTDR                               | Web Application        |
-| Payment Investigation | Pega Payment Investigation          | Web Application        |
-| Cheque Clearing System| ICCS Collect - EI                   | Web Application        |
-|                       | ICCS Collect - Enbd                 | Web Application        |
-|                       | Express Clear                       | Web Application        |
-|                       | Scanner                             | Thick Client           |
-|                       | Payment Analytics                   | Web Application        |
-|                       | BPM Payment                         | Web Application        |
