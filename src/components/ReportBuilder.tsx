@@ -144,7 +144,7 @@ const ReportBuilderInner = () => {
           let customTableMd = `### Custom Table\n\n| ${headers} |\n| ${separator} |\n`;
           (data.cellData || []).forEach((row: string[], rowIndex: number) => {
             const rowData = row.map((cell: string, colIndex: number) => {
-              if (data.fileColumnIndex === colIndex && data.fileData?.[rowIndex]?.[colIndex]) {
+              if (data.cellFileEnabled?.[rowIndex]?.[colIndex] && data.fileData?.[rowIndex]?.[colIndex]) {
                 return data.fileData[rowIndex][colIndex].map((f: UploadedFile) => `[${f.name}](${f.path})`).join('<br>');
               }
               return cell || '-';

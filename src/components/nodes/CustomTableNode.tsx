@@ -4,20 +4,29 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Table, Plus, Trash2, Settings2, ChevronLeft, ChevronRight, FileUp, X } from 'lucide-react';
+import { Table, Plus, Trash2, Settings2, ChevronLeft, ChevronRight, FileUp, X, FileText, Image as ImageIcon, File } from 'lucide-react';
 import { NodeData, UploadedFile } from './types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
 
 interface CustomTableData extends NodeData {
   rows?: number;
   cols?: number;
   headers?: string[];
   cellData?: string[][];
-  hasFileColumn?: boolean;
-  fileColumnIndex?: number;
+  cellFileEnabled?: boolean[][]; // Which cells have file upload enabled
   fileData?: UploadedFile[][][]; // [row][col][files]
 }
+
+const getFileIcon = (filename: string) => {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '')) return ImageIcon;
+  if (['pdf'].includes(ext || '')) return FileText;
+  if (['csv', 'xlsx', 'xls'].includes(ext || '')) return FileText;
+  if (['doc', 'docx'].includes(ext || '')) return FileText;
+  return File;
+};
 
 export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<CustomTableData>>) => {
   const { updateNodeData } = data;
@@ -31,8 +40,9 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
   const [cellData, setCellData] = useState<string[][]>(
     data.cellData || Array(data.rows || 3).fill(null).map(() => Array(data.cols || 3).fill(''))
   );
-  const [hasFileColumn, setHasFileColumn] = useState(data.hasFileColumn || false);
-  const [fileColumnIndex, setFileColumnIndex] = useState(data.fileColumnIndex ?? -1);
+  const [cellFileEnabled, setCellFileEnabled] = useState<boolean[][]>(
+    data.cellFileEnabled || Array(data.rows || 3).fill(null).map(() => Array(data.cols || 3).fill(false))
+  );
   const [fileData, setFileData] = useState<UploadedFile[][][]>(
     data.fileData || Array(data.rows || 3).fill(null).map(() => Array(data.cols || 3).fill(null).map(() => []))
   );
@@ -42,10 +52,9 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
     updateNodeData?.(id, 'cols', cols);
     updateNodeData?.(id, 'headers', headers);
     updateNodeData?.(id, 'cellData', cellData);
-    updateNodeData?.(id, 'hasFileColumn', hasFileColumn);
-    updateNodeData?.(id, 'fileColumnIndex', fileColumnIndex);
+    updateNodeData?.(id, 'cellFileEnabled', cellFileEnabled);
     updateNodeData?.(id, 'fileData', fileData);
-  }, [rows, cols, headers, cellData, hasFileColumn, fileColumnIndex, fileData, id, updateNodeData]);
+  }, [rows, cols, headers, cellData, cellFileEnabled, fileData, id, updateNodeData]);
 
   const updateDimensions = (newRows: number, newCols: number) => {
     // Adjust headers
@@ -92,7 +101,24 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
       }
     });
 
+    // Adjust cellFileEnabled
+    const newCellFileEnabled = [...cellFileEnabled];
+    if (newRows > rows) {
+      newCellFileEnabled.push(...Array(newRows - rows).fill(null).map(() => Array(newCols).fill(false)));
+    } else if (newRows < rows) {
+      newCellFileEnabled.splice(newRows);
+    }
+    
+    newCellFileEnabled.forEach((row, i) => {
+      if (newCols > cols) {
+        newCellFileEnabled[i] = [...row, ...Array(newCols - cols).fill(false)];
+      } else if (newCols < cols) {
+        newCellFileEnabled[i] = row.slice(0, newCols);
+      }
+    });
+
     setFileData(newFileData);
+    setCellFileEnabled(newCellFileEnabled);
     setCellData(newCellData);
     setRows(newRows);
     setCols(newCols);
@@ -113,6 +139,7 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
   const addRow = () => {
     setCellData([...cellData, Array(cols).fill('')]);
     setFileData([...fileData, Array(cols).fill(null).map(() => [])]);
+    setCellFileEnabled([...cellFileEnabled, Array(cols).fill(false)]);
     setRows(rows + 1);
   };
 
@@ -120,6 +147,7 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
     setHeaders([...headers, '']);
     setCellData(cellData.map(row => [...row, '']));
     setFileData(fileData.map(row => [...row, []]));
+    setCellFileEnabled(cellFileEnabled.map(row => [...row, false]));
     setCols(cols + 1);
   };
 
@@ -127,8 +155,10 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
     if (rows <= 1) return;
     const newCellData = cellData.filter((_, i) => i !== rowIndex);
     const newFileData = fileData.filter((_, i) => i !== rowIndex);
+    const newCellFileEnabled = cellFileEnabled.filter((_, i) => i !== rowIndex);
     setCellData(newCellData);
     setFileData(newFileData);
+    setCellFileEnabled(newCellFileEnabled);
     setRows(rows - 1);
   };
 
@@ -137,12 +167,13 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
     setHeaders(headers.filter((_, i) => i !== colIndex));
     setCellData(cellData.map(row => row.filter((_, i) => i !== colIndex)));
     setFileData(fileData.map(row => row.filter((_, i) => i !== colIndex)));
+    setCellFileEnabled(cellFileEnabled.map(row => row.filter((_, i) => i !== colIndex)));
     setCols(cols - 1);
   };
 
   const handleFileUpload = (rowIndex: number, colIndex: number, files: FileList) => {
     const newFiles: UploadedFile[] = Array.from(files).map((file) => {
-      const extension = file.name.split('.').pop() || 'png';
+      const extension = file.name.split('.').pop() || 'file';
       const newFileName = `custom-table-r${rowIndex}-c${colIndex}-${Date.now()}.${extension}`;
       const newPath = `./evidence/${newFileName}`;
       return { name: file.name, path: newPath, file, previewUrl: URL.createObjectURL(file) };
@@ -161,14 +192,10 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
     setFileData(newFileData);
   };
 
-  const toggleFileColumn = (colIndex: number) => {
-    if (fileColumnIndex === colIndex) {
-      setHasFileColumn(false);
-      setFileColumnIndex(-1);
-    } else {
-      setHasFileColumn(true);
-      setFileColumnIndex(colIndex);
-    }
+  const toggleCellFileUpload = (rowIndex: number, colIndex: number) => {
+    const newCellFileEnabled = [...cellFileEnabled];
+    newCellFileEnabled[rowIndex][colIndex] = !newCellFileEnabled[rowIndex][colIndex];
+    setCellFileEnabled(newCellFileEnabled);
   };
 
   const scroll = (x: number) => scrollContainerRef.current?.scrollBy({ left: x, behavior: 'smooth' });
@@ -246,34 +273,23 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
             <tr>
               {headers.map((header, colIndex) => (
                 <th key={colIndex} className="border border-border p-1 bg-card">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1">
-                      <Input
-                        value={header}
-                        onChange={(e) => updateHeader(colIndex, e.target.value)}
-                        placeholder={`Column ${colIndex + 1}`}
-                        className="text-xs font-semibold nodrag nopan h-7"
-                      />
-                      {cols > 1 && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6 shrink-0"
-                          onClick={() => removeColumn(colIndex)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                    <Button
-                      size="sm"
-                      variant={fileColumnIndex === colIndex ? "default" : "outline"}
-                      className="w-full text-xs h-6"
-                      onClick={() => toggleFileColumn(colIndex)}
-                    >
-                      <FileUp className="h-3 w-3 mr-1" />
-                      {fileColumnIndex === colIndex ? 'File Col' : 'Make File Col'}
-                    </Button>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      value={header}
+                      onChange={(e) => updateHeader(colIndex, e.target.value)}
+                      placeholder={`Column ${colIndex + 1}`}
+                      className="text-xs font-semibold nodrag nopan h-7"
+                    />
+                    {cols > 1 && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 shrink-0"
+                        onClick={() => removeColumn(colIndex)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                 </th>
               ))}
@@ -284,59 +300,77 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
               <tr key={rowIndex}>
                 {row.map((cell, colIndex) => (
                   <td key={colIndex} className="border border-border p-1">
-                    {fileColumnIndex === colIndex ? (
-                      <div className="space-y-1">
-                        <div className="max-h-20 overflow-y-auto space-y-1">
-                          {fileData[rowIndex][colIndex].map((file, fileIndex) => (
-                            <div key={fileIndex} className="flex items-center justify-between bg-background p-1 rounded text-xs">
-                              <span className="truncate">{file.name}</span>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-5 w-5 shrink-0"
-                                onClick={() => removeFile(rowIndex, colIndex, fileIndex)}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="w-full text-xs nodrag nopan h-6"
-                          onClick={() => fileInputRefs.current[`${rowIndex}-${colIndex}`]?.click()}
-                        >
-                          <FileUp className="h-3 w-3 mr-1" /> Upload
-                        </Button>
-                        <input
-                          ref={el => fileInputRefs.current[`${rowIndex}-${colIndex}`] = el}
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => e.target.files && handleFileUpload(rowIndex, colIndex, e.target.files)}
-                        />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 mb-1">
+                        <Label className="text-xs flex items-center gap-1">
+                          <Switch
+                            checked={cellFileEnabled[rowIndex][colIndex]}
+                            onCheckedChange={() => toggleCellFileUpload(rowIndex, colIndex)}
+                            className="scale-75"
+                          />
+                          <FileUp className="h-3 w-3" />
+                        </Label>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        <Input
-                          value={cell}
-                          onChange={(e) => updateCell(rowIndex, colIndex, e.target.value)}
-                          className="text-xs nodrag nopan h-7"
-                        />
-                        {colIndex === 0 && rows > 1 && (
+                      {cellFileEnabled[rowIndex][colIndex] ? (
+                        <div className="space-y-1">
+                          <div className="max-h-20 overflow-y-auto space-y-1">
+                            {fileData[rowIndex][colIndex].map((file, fileIndex) => {
+                              const FileIcon = getFileIcon(file.name);
+                              return (
+                                <div key={fileIndex} className="flex items-center justify-between bg-background p-1 rounded text-xs">
+                                  <div className="flex items-center gap-1 truncate">
+                                    <FileIcon className="h-3 w-3 shrink-0" />
+                                    <span className="truncate">{file.name}</span>
+                                  </div>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-5 w-5 shrink-0"
+                                    onClick={() => removeFile(rowIndex, colIndex, fileIndex)}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          </div>
                           <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6 shrink-0"
-                            onClick={() => removeRow(rowIndex)}
+                            size="sm"
+                            variant="outline"
+                            className="w-full text-xs nodrag nopan h-6"
+                            onClick={() => fileInputRefs.current[`${rowIndex}-${colIndex}`]?.click()}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <FileUp className="h-3 w-3 mr-1" /> Upload Files
                           </Button>
-                        )}
-                      </div>
-                    )}
+                          <input
+                            ref={el => fileInputRefs.current[`${rowIndex}-${colIndex}`] = el}
+                            type="file"
+                            multiple
+                            accept="image/*,.pdf,.doc,.docx,.csv,.xlsx,.xls"
+                            className="hidden"
+                            onChange={(e) => e.target.files && handleFileUpload(rowIndex, colIndex, e.target.files)}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <Input
+                            value={cell}
+                            onChange={(e) => updateCell(rowIndex, colIndex, e.target.value)}
+                            className="text-xs nodrag nopan h-7"
+                          />
+                          {colIndex === 0 && rows > 1 && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 shrink-0"
+                              onClick={() => removeRow(rowIndex)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </td>
                 ))}
               </tr>

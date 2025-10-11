@@ -93,19 +93,21 @@ const ComponentRenderer: React.FC<{ component: ReportComponent }> = ({ component
                 {(data.cellData && data.cellData.length > 0) ? (
                   data.cellData.map((row: string[], rowIndex: number) => (
                     <tr key={rowIndex}>
-                      {row.map((cell: string, colIndex: number) => (
-                        <td key={colIndex} className="border px-4 py-2">
-                          {data.fileColumnIndex === colIndex ? (
-                            <div className="space-y-1">
-                              {data.fileData?.[rowIndex]?.[colIndex]?.map((file: UploadedFile, fileIndex: number) => (
-                                <div key={fileIndex} className="font-mono text-xs">{file.path}</div>
-                              ))}
+                  {row.map((cell: string, colIndex: number) => (
+                    <td key={colIndex} className="border px-4 py-2">
+                      {data.cellFileEnabled?.[rowIndex]?.[colIndex] ? (
+                        <div className="space-y-1">
+                          {data.fileData?.[rowIndex]?.[colIndex]?.map((file: UploadedFile, fileIndex: number) => (
+                            <div key={fileIndex} className="font-mono text-xs flex items-center gap-1">
+                              <span className="text-xs">{file.name}</span>
                             </div>
-                          ) : (
-                            cell || '-'
-                          )}
-                        </td>
-                      ))}
+                          ))}
+                        </div>
+                      ) : (
+                        cell || '-'
+                      )}
+                    </td>
+                  ))}
                     </tr>
                   ))
                 ) : (
