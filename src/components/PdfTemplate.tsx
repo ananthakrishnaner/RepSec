@@ -170,44 +170,44 @@ const PdfComponentRenderer: React.FC<{ component: ReportComponent }> = ({ compon
           <h2 className="section-title">Vulnerabilities</h2>
           {(data.vulnerabilities && data.vulnerabilities.length > 0) ? (
             data.vulnerabilities.map((vuln: any, vulnIndex: number) => (
-              <div key={vulnIndex} style={{ marginBottom: '24px', pageBreakInside: 'avoid' }}>
-                <h3 style={{ fontSize: '14pt', fontWeight: 'bold', color: '#2d3748', marginBottom: '8px' }}>
-                  Vulnerability {vulnIndex + 1}: {vuln.header || 'Untitled'}
-                </h3>
+              <div key={vulnIndex} className="vulnerability-card">
+                <div className="vulnerability-header">
+                  <span className="vulnerability-number">#{vulnIndex + 1}</span>
+                  <h3 className="vulnerability-title">{vuln.header || 'Untitled Vulnerability'}</h3>
+                </div>
                 
-                <div style={{ marginBottom: '12px' }}>
-                  <strong style={{ fontSize: '10pt' }}>Description:</strong>
-                  <p className="prose-text" style={{ marginTop: '4px' }}>{vuln.description || 'N/A'}</p>
-                </div>
-
-                <div style={{ marginBottom: '12px' }}>
-                  <strong style={{ fontSize: '10pt' }}>Impact:</strong>
-                  <p className="prose-text" style={{ marginTop: '4px' }}>{vuln.impact || 'N/A'}</p>
-                </div>
-
-                <div style={{ marginBottom: '12px' }}>
-                  <strong style={{ fontSize: '10pt' }}>Mitigation:</strong>
-                  <p className="prose-text" style={{ marginTop: '4px' }}>{vuln.mitigation || 'N/A'}</p>
-                </div>
+                <table className="vulnerability-details-table">
+                  <tbody>
+                    <tr>
+                      <td className="detail-label">Description</td>
+                      <td className="detail-content">{vuln.description || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="detail-label">Impact</td>
+                      <td className="detail-content">{vuln.impact || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="detail-label">Mitigation</td>
+                      <td className="detail-content">{vuln.mitigation || 'N/A'}</td>
+                    </tr>
+                  </tbody>
+                </table>
 
                 {vuln.stepsToReproduce && vuln.stepsToReproduce.length > 0 && (
-                  <div style={{ marginBottom: '12px' }}>
-                    <strong style={{ fontSize: '10pt' }}>Steps to Reproduce:</strong>
-                    <ol style={{ marginLeft: '1.5rem', marginTop: '8px' }}>
+                  <div className="steps-section">
+                    <h4 className="steps-heading">Steps to Reproduce</h4>
+                    <ol className="reproduction-steps">
                       {vuln.stepsToReproduce.map((step: any, stepIndex: number) => (
-                        <li key={stepIndex} style={{ marginBottom: '12px', pageBreakInside: 'avoid' }}>
-                          <p style={{ fontSize: '10pt', margin: 0 }}>{step.text || 'N/A'}</p>
+                        <li key={stepIndex} className="step-item">
+                          <p className="step-text">{step.text || 'N/A'}</p>
                           {step.screenshot && (
-                            <div style={{ marginTop: '8px' }}>
+                            <div className="step-screenshot">
                               <img 
                                 src={step.screenshot.previewUrl} 
                                 alt={step.label || 'Screenshot'}
-                                style={{ maxWidth: '90%', border: '1px solid #e2e8f0', borderRadius: '4px' }}
                               />
                               {step.label && (
-                                <p style={{ fontSize: '9pt', fontStyle: 'italic', color: '#718096', marginTop: '4px' }}>
-                                  {step.label}
-                                </p>
+                                <p className="screenshot-label">{step.label}</p>
                               )}
                             </div>
                           )}
@@ -216,8 +216,6 @@ const PdfComponentRenderer: React.FC<{ component: ReportComponent }> = ({ compon
                     </ol>
                   </div>
                 )}
-
-                <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '16px 0' }} />
               </div>
             ))
           ) : (
