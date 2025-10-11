@@ -80,7 +80,7 @@ const ReportBuilderInner = () => {
     if (!type) return;
     const position = { x: event.clientX - reactFlowBounds.left, y: event.clientY - reactFlowBounds.top };
     const newNodeData: NodeData = { label: `${type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')}`, fieldType: fieldType || '', updateNodeData, value: '', title: '', level: 'h2', multiline: false, placeholder: 'Enter content...', testCases: [], changeDescription: '', linkedStories: [], content: '', language: 'text', files: [], steps: [], url: '' };
-    const newNode: Node<NodeData> = { id: getId(), type, position, data: newNodeData, style: { width: type === 'table' ? 800 : type === 'steps' || type === 'linkedStories' ? 500 : 350 }};
+    const newNode: Node<NodeData> = { id: getId(), type, position, data: newNodeData, style: { width: type === 'table' ? 800 : type === 'customTable' ? 600 : type === 'steps' || type === 'linkedStories' ? 500 : 350 }};
     setNodes((nds) => nds.concat(newNode));
   }, [updateNodeData, setNodes]);
 
@@ -138,6 +138,20 @@ const ReportBuilderInner = () => {
             const evidenceLinks = (tc.evidence || []).map((ev: UploadedFile) => `[${ev.name}](${ev.path})`).join('<br>');
             tableMd += `| ${tc.id || ''} | ${tc.testCase || ''} | ${tc.category || ''} | ${tc.exploited || ''} | ${tc.url || ''} | ${evidenceLinks} | ${tc.status || ''} | ${tc.tester || ''} |\n`;
           }); return tableMd;
+        case 'customTable':
+          const headers = (data.headers || []).map(h => h || 'Column').join(' | ');
+          const separator = (data.headers || []).map(() => '---').join(' | ');
+          let customTableMd = `### Custom Table\n\n| ${headers} |\n| ${separator} |\n`;
+          (data.cellData || []).forEach((row: string[], rowIndex: number) => {
+            const rowData = row.map((cell: string, colIndex: number) => {
+              if (data.fileColumnIndex === colIndex && data.fileData?.[rowIndex]?.[colIndex]) {
+                return data.fileData[rowIndex][colIndex].map((f: UploadedFile) => `[${f.name}](${f.path})`).join('<br>');
+              }
+              return cell || '-';
+            }).join(' | ');
+            customTableMd += `| ${rowData} |\n`;
+          });
+          return customTableMd;
         case 'codeSnippet': return `\n### ${data.title || 'Code Snippet'}\n\n\`\`\`${data.language || 'text'}\n${data.content || ''}\n\`\`\`\n`;
         case 'linkedStories':
           let storiesMd = `\n### Change Description & Linked Stories\n\n**Description:**\n${data.changeDescription || 'N/A'}\n`;

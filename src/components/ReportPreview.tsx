@@ -4,7 +4,7 @@ import { UploadedFile, NodeData } from './nodes/types';
 import { Button } from './ui/button';
 import { ExternalLink } from 'lucide-react';
 
-export interface ReportComponent { type: 'sectionHeader' | 'textInput' | 'table' | 'codeSnippet' | 'linkedStories' | 'fileUpload' | 'steps' | string; data: NodeData; }
+export interface ReportComponent { type: 'sectionHeader' | 'textInput' | 'table' | 'customTable' | 'codeSnippet' | 'linkedStories' | 'fileUpload' | 'steps' | string; data: NodeData; }
 interface ReportPreviewProps { reportComponents: ReportComponent[] | null; }
 
 const isImageFile = (filename: string): boolean => /\.(jpe?g|png|gif|webp|svg)$/i.test(filename);
@@ -74,6 +74,52 @@ const ComponentRenderer: React.FC<{ component: ReportComponent }> = ({ component
                 ) : <EmptyPlaceholder text="[No steps provided]" />}
             </div>
         );
+    case 'customTable':
+      return (
+        <div className="my-6">
+          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">Custom Table</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-collapse border border-border mt-4">
+              <thead>
+                <tr>
+                  {(data.headers || []).map((header: string, i: number) => (
+                    <th key={i} className="border bg-muted px-4 py-2 text-left">
+                      {header || `Column ${i + 1}`}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(data.cellData && data.cellData.length > 0) ? (
+                  data.cellData.map((row: string[], rowIndex: number) => (
+                    <tr key={rowIndex}>
+                      {row.map((cell: string, colIndex: number) => (
+                        <td key={colIndex} className="border px-4 py-2">
+                          {data.fileColumnIndex === colIndex ? (
+                            <div className="space-y-1">
+                              {data.fileData?.[rowIndex]?.[colIndex]?.map((file: UploadedFile, fileIndex: number) => (
+                                <div key={fileIndex} className="font-mono text-xs">{file.path}</div>
+                              ))}
+                            </div>
+                          ) : (
+                            cell || '-'
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={(data.headers || []).length} className="text-center p-4 text-muted-foreground italic">
+                      No data in table
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
     default: return null;
   }
 };
