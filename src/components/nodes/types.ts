@@ -33,4 +33,17 @@ export interface NodeData {
   files?: UploadedFile[];
   steps?: { id: string; text: string; image?: UploadedFile }[];
   url?: string;
+  vulnerabilities?: Array<{
+    id: string;
+    header: string;
+    description: string;
+    impact: string;
+    mitigation: string;
+    stepsToReproduce: Array<{
+      id: string;
+      text: string;
+      screenshot?: UploadedFile;
+      label?: string;
+    }>;
+  }>;
 }

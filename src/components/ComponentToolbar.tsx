@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Type, Table, Code, Upload, Heading, Link, ListOrdered, Bot } from 'lucide-react';
+import { Type, Table, Code, Upload, Heading, Link, ListOrdered, Bot, Shield } from 'lucide-react';
 
 const components = [
   { type: 'sectionHeader', label: 'Section Header', icon: Heading, description: 'Add section headers and titles' },
@@ -8,6 +8,7 @@ const components = [
   { type: 'textInput', label: 'Scope Field', icon: Type, description: 'Define the scope of work', fieldType: 'scope' },
   { type: 'textInput', label: 'Baselines', icon: Type, description: 'Add baseline information', fieldType: 'baselines' },
   { type: 'linkedStories', label: 'Linked Stories (Jira)', icon: Link, description: 'Link to Jira tickets or stories' },
+  { type: 'vulnerabilityTable', label: 'Vulnerability Table', icon: Shield, description: 'Document vulnerabilities with steps and screenshots' },
   { type: 'table', label: 'Test Cases Table', icon: Table, description: 'A detailed table for test cases' },
   { type: 'customTable', label: 'Custom Table', icon: Table, description: 'Create a table with custom rows/columns' },
   { type: 'aiGenerator', label: 'AI Test Case Generator', icon: Bot, description: 'Use AI to populate a Test Case Table' },

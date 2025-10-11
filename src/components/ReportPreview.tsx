@@ -4,7 +4,7 @@ import { UploadedFile, NodeData } from './nodes/types';
 import { Button } from './ui/button';
 import { ExternalLink } from 'lucide-react';
 
-export interface ReportComponent { type: 'sectionHeader' | 'textInput' | 'table' | 'customTable' | 'codeSnippet' | 'linkedStories' | 'fileUpload' | 'steps' | string; data: NodeData; }
+export interface ReportComponent { type: 'sectionHeader' | 'textInput' | 'table' | 'customTable' | 'codeSnippet' | 'linkedStories' | 'fileUpload' | 'steps' | 'vulnerabilityTable' | string; data: NodeData; }
 interface ReportPreviewProps { reportComponents: ReportComponent[] | null; }
 
 const isImageFile = (filename: string): boolean => /\.(jpe?g|png|gif|webp|svg)$/i.test(filename);
@@ -120,6 +120,75 @@ const ComponentRenderer: React.FC<{ component: ReportComponent }> = ({ component
               </tbody>
             </table>
           </div>
+        </div>
+      );
+    case 'vulnerabilityTable':
+      return (
+        <div className="my-6">
+          <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4 pb-2 border-b border-border">Vulnerabilities</h2>
+          {(data.vulnerabilities && data.vulnerabilities.length > 0) ? (
+            <div className="space-y-8">
+              {data.vulnerabilities.map((vuln: any, index: number) => (
+                <div key={vuln.id} className="border-l-4 border-primary pl-4">
+                  <h3 className="text-xl font-semibold mb-3">
+                    Vulnerability {index + 1}: {vuln.header || 'Untitled'}
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-sm text-muted-foreground mb-1">Description</h4>
+                      <p className="whitespace-pre-wrap">{vuln.description || <EmptyPlaceholder />}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-sm text-muted-foreground mb-1">Impact</h4>
+                      <p className="whitespace-pre-wrap">{vuln.impact || <EmptyPlaceholder />}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-sm text-muted-foreground mb-1">Mitigation</h4>
+                      <p className="whitespace-pre-wrap">{vuln.mitigation || <EmptyPlaceholder />}</p>
+                    </div>
+
+                    {vuln.stepsToReproduce && vuln.stepsToReproduce.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground mb-2">Steps to Reproduce</h4>
+                        <ol className="list-decimal list-inside space-y-3">
+                          {vuln.stepsToReproduce.map((step: any, stepIndex: number) => (
+                            <li key={step.id} className="ml-2">
+                              <p className="inline mb-2">{step.text || <EmptyPlaceholder />}</p>
+                              {step.screenshot && (
+                                <div className="ml-6 mt-2 space-y-1">
+                                  {isImageFile(step.screenshot.name) ? (
+                                    <img 
+                                      src={step.screenshot.previewUrl} 
+                                      alt={step.label || `Screenshot ${stepIndex + 1}`}
+                                      className="max-w-md border rounded-md"
+                                    />
+                                  ) : (
+                                    <div className="font-mono text-xs">{step.screenshot.path}</div>
+                                  )}
+                                  {step.label && (
+                                    <p className="text-sm italic text-muted-foreground">{step.label}</p>
+                                  )}
+                                </div>
+                              )}
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {index < data.vulnerabilities.length - 1 && (
+                    <hr className="mt-6 border-border" />
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyPlaceholder text="[No vulnerabilities documented]" />
+          )}
         </div>
       );
     default: return null;

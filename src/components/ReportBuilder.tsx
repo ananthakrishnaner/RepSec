@@ -24,6 +24,7 @@ import { LinkedStoriesNode } from './nodes/LinkedStoriesNode';
 import { StepsNode } from './nodes/StepsNode';
 import { AIGeneratorNode } from './nodes/AIGeneratorNode';
 import { CustomTableNode } from './nodes/CustomTableNode';
+import { VulnerabilityTableNode } from './nodes/VulnerabilityTableNode';
 import { initialNodes as defaultInitialNodes } from './initialElements';
 import { UploadedFile, NodeData } from './nodes/types';
 import { getLayoutedElements } from '@/lib/layout';
@@ -68,7 +69,7 @@ const ReportBuilderInner = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(runtimeInitialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const nodeTypes = { textInput: TextInputNode, table: TableNode, codeSnippet: CodeSnippetNode, fileUpload: FileUploadNode, sectionHeader: SectionHeaderNode, linkedStories: LinkedStoriesNode, steps: StepsNode, aiGenerator: AIGeneratorNode, customTable: CustomTableNode };
+  const nodeTypes = { textInput: TextInputNode, table: TableNode, codeSnippet: CodeSnippetNode, fileUpload: FileUploadNode, sectionHeader: SectionHeaderNode, linkedStories: LinkedStoriesNode, steps: StepsNode, aiGenerator: AIGeneratorNode, customTable: CustomTableNode, vulnerabilityTable: VulnerabilityTableNode };
   
   const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
   const onDragOver = useCallback((event: React.DragEvent) => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }, []);
@@ -79,8 +80,8 @@ const ReportBuilderInner = () => {
     const type = event.dataTransfer.getData('application/reactflow'); const fieldType = event.dataTransfer.getData('application/fieldtype');
     if (!type) return;
     const position = { x: event.clientX - reactFlowBounds.left, y: event.clientY - reactFlowBounds.top };
-    const newNodeData: NodeData = { label: `${type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')}`, fieldType: fieldType || '', updateNodeData, value: '', title: '', level: 'h2', multiline: false, placeholder: 'Enter content...', testCases: [], changeDescription: '', linkedStories: [], content: '', language: 'text', files: [], steps: [], url: '' };
-    const newNode: Node<NodeData> = { id: getId(), type, position, data: newNodeData, style: { width: type === 'table' ? 800 : type === 'customTable' ? 600 : type === 'steps' || type === 'linkedStories' ? 500 : 350 }};
+    const newNodeData: NodeData = { label: `${type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')}`, fieldType: fieldType || '', updateNodeData, value: '', title: '', level: 'h2', multiline: false, placeholder: 'Enter content...', testCases: [], changeDescription: '', linkedStories: [], content: '', language: 'text', files: [], steps: [], url: '', vulnerabilities: [] };
+    const newNode: Node<NodeData> = { id: getId(), type, position, data: newNodeData, style: { width: type === 'table' ? 800 : type === 'vulnerabilityTable' ? 700 : type === 'customTable' ? 600 : type === 'steps' || type === 'linkedStories' ? 500 : 350 }};
     setNodes((nds) => nds.concat(newNode));
   }, [updateNodeData, setNodes]);
 
@@ -170,6 +171,28 @@ const ReportBuilderInner = () => {
             if (step.image) { stepsMd += `   ![Screenshot for Step ${index + 1}](${step.image.path})\n`; }
           });
           return stepsMd + '\n';
+        case 'vulnerabilityTable':
+          let vulnMd = `\n## Vulnerabilities\n`;
+          (data.vulnerabilities || []).forEach((vuln: any, index: number) => {
+            vulnMd += `\n### Vulnerability ${index + 1}: ${vuln.header || 'Untitled'}\n\n`;
+            vulnMd += `**Description:**\n${vuln.description || 'N/A'}\n\n`;
+            vulnMd += `**Impact:**\n${vuln.impact || 'N/A'}\n\n`;
+            vulnMd += `**Mitigation:**\n${vuln.mitigation || 'N/A'}\n\n`;
+            if (vuln.stepsToReproduce && vuln.stepsToReproduce.length > 0) {
+              vulnMd += `**Steps to Reproduce:**\n`;
+              vuln.stepsToReproduce.forEach((step: any, stepIndex: number) => {
+                vulnMd += `\n${stepIndex + 1}. ${step.text || ''}\n`;
+                if (step.screenshot) {
+                  vulnMd += `   ![${step.label || 'Screenshot'}](${step.screenshot.path})\n`;
+                  if (step.label) {
+                    vulnMd += `   *${step.label}*\n`;
+                  }
+                }
+              });
+            }
+            vulnMd += `\n---\n`;
+          });
+          return vulnMd;
         default: return '';
       }
     }).join('\n');
@@ -185,6 +208,11 @@ const ReportBuilderInner = () => {
       if (node.data.files) node.data.files.forEach((uploadedFile: UploadedFile) => { evidenceFolder.file(uploadedFile.path.replace('./evidence/', ''), uploadedFile.file); });
       if (node.data.testCases) node.data.testCases.forEach((tc: any) => { if(tc.evidence) tc.evidence.forEach((ev: UploadedFile) => { evidenceFolder.file(ev.path.replace('./evidence/', ''), ev.file); }); });
       if (node.data.steps) node.data.steps.forEach((step: any) => { if (step.image) evidenceFolder.file(step.image.path.replace('./evidence/', ''), step.image.file); });
+      if (node.data.vulnerabilities) node.data.vulnerabilities.forEach((vuln: any) => {
+        if (vuln.stepsToReproduce) vuln.stepsToReproduce.forEach((step: any) => {
+          if (step.screenshot) evidenceFolder.file(step.screenshot.path.replace('./evidence/', ''), step.screenshot.file);
+        });
+      });
     });
     try {
       const content = await zip.generateAsync({ type: "blob" });
