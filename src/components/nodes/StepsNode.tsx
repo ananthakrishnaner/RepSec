@@ -1,5 +1,5 @@
 import React, { memo, useState, useEffect } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { v4 as uuidv4 } from 'uuid';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,8 +25,11 @@ const createNewStep = (): Step => ({ id: uuidv4(), text: '', image: undefined })
 
 export const StepsNode = memo<StepsNodeProps>(({ data, id }) => {
   const { updateNodeData, label } = data;
+  const { deleteElements } = useReactFlow();
   const { toast } = useToast();
   const [steps, setSteps] = useState<Step[]>(data.steps || [createNewStep()]);
+  
+  const handleDelete = () => deleteElements({ nodes: [{ id }] });
 
   const syncSteps = (newSteps: Step[]) => {
     setSteps(newSteps);
@@ -82,16 +85,22 @@ export const StepsNode = memo<StepsNodeProps>(({ data, id }) => {
   };
 
   return (
-    <Card className="w-[500px] p-4 bg-background border-border">
+    <Card className="w-[500px] p-4 bg-background border-border relative">
       <Handle type="target" position={Position.Top} />
+      <Button
+        onClick={handleDelete}
+        size="icon"
+        variant="destructive"
+        className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+      >
+        <X className="h-3 w-3" />
+      </Button>
       <div className="flex justify-between items-center mb-4">
         <Label className="text-lg font-semibold">{label || 'Steps to Reproduce'}</Label>
         <Button onClick={addStep} size="sm"><Plus className="h-4 w-4 mr-2" />Add Step</Button>
       </div>
       
-      {/* --- THIS IS THE DEFINITIVE FIX --- */}
-      {/* We are now using the <ScrollArea> component which is designed for this */}
-      <ScrollArea className="h-[24rem] w-full pr-4"> {/* h-[24rem] is 384px. You can adjust this. */}
+      <ScrollArea className="h-[24rem] w-full pr-4">
         <div className="space-y-4">
           {steps.map((step, index) => (
             <div key={step.id} className="p-3 border rounded-lg bg-muted/30 relative">

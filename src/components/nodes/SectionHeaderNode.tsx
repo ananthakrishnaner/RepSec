@@ -1,10 +1,11 @@
 import React, { memo, useState } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heading } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Heading, X } from 'lucide-react';
 
 interface SectionHeaderNodeProps {
   data: {
@@ -18,6 +19,7 @@ interface SectionHeaderNodeProps {
 
 export const SectionHeaderNode = memo<SectionHeaderNodeProps>(({ data, id }) => {
   const updateNodeData = data.updateNodeData;
+  const { deleteElements } = useReactFlow();
   const [title, setTitle] = useState(data.title || 'Section Title');
   const [level, setLevel] = useState(data.level || 'h2');
 
@@ -30,6 +32,8 @@ export const SectionHeaderNode = memo<SectionHeaderNodeProps>(({ data, id }) => 
     setLevel(newLevel);
     updateNodeData?.(id, 'level', newLevel);
   };
+  
+  const handleDelete = () => deleteElements({ nodes: [{ id }] });
 
   const getPreviewStyle = () => {
     switch (level) {
@@ -52,8 +56,16 @@ export const SectionHeaderNode = memo<SectionHeaderNodeProps>(({ data, id }) => 
   };
 
   return (
-    <Card className="w-80 p-4 bg-background border-border">
+    <Card className="w-80 p-4 bg-background border-border relative">
       <Handle type="target" position={Position.Top} className="w-2 h-2" />
+      <Button
+        onClick={handleDelete}
+        size="icon"
+        variant="destructive"
+        className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+      >
+        <X className="h-3 w-3" />
+      </Button>
       
       <div className="flex items-center gap-2 mb-3">
         <Heading className="h-4 w-4 text-primary" />

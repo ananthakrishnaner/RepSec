@@ -1,11 +1,11 @@
 import React, { memo, useState } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Code, Copy } from 'lucide-react';
+import { Code, Copy, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,12 +33,15 @@ const languages = [
 
 export const CodeSnippetNode = memo<CodeSnippetNodeProps>(({ data, id }) => {
   const updateNodeData = data.updateNodeData;
+  const { deleteElements } = useReactFlow();
   const [title, setTitle] = useState(data.title || 'Code Snippet');
   const [content, setContent] = useState(data.content || '');
   const [language, setLanguage] = useState(data.language || 'http');
   const [httpRequest, setHttpRequest] = useState('');
   const [httpResponse, setHttpResponse] = useState('');
   const { toast } = useToast();
+  
+  const handleDelete = () => deleteElements({ nodes: [{ id }] });
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
@@ -121,8 +124,16 @@ Content-Length: 76
   };
 
   return (
-    <Card className="w-96 p-4 bg-background border-border">
+    <Card className="w-96 p-4 bg-background border-border relative">
       <Handle type="target" position={Position.Top} className="w-2 h-2" />
+      <Button
+        onClick={handleDelete}
+        size="icon"
+        variant="destructive"
+        className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+      >
+        <X className="h-3 w-3" />
+      </Button>
       
       <div className="flex items-center gap-2 mb-3">
         <Code className="h-4 w-4 text-primary" />

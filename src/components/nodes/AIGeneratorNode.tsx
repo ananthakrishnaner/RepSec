@@ -4,20 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, Zap, Loader2 } from 'lucide-react';
+import { Bot, Zap, Loader2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { NodeData, TestCase } from './types';
 import { generateComprehensiveTestPlan } from '@/lib/gemini';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export const AIGeneratorNode = memo(({ id, data, selected }: NodeProps<Node<NodeData>>) => {
-  const { getEdges, setNodes } = useReactFlow();
+  const { getEdges, setNodes, deleteElements } = useReactFlow();
   const { toast } = useToast();
 
   const [prompt, setPrompt] = useState('');
   const [intensity, setIntensity] = useState<'focused' | 'comprehensive'>('focused');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const handleDelete = () => deleteElements({ nodes: [{ id }] });
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -66,9 +68,17 @@ export const AIGeneratorNode = memo(({ id, data, selected }: NodeProps<Node<Node
   };
 
   return (
-    <Card className="w-full h-full p-0 bg-background border-border flex flex-col shadow-lg border-2 border-purple-500/50">
+    <Card className="w-full h-full p-0 bg-background border-border flex flex-col shadow-lg border-2 border-purple-500/50 relative">
       <NodeResizer minWidth={380} minHeight={350} isVisible={selected} />
       <Handle type="target" position={Position.Top} isConnectable={false} />
+      <Button
+        onClick={handleDelete}
+        size="icon"
+        variant="destructive"
+        className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+      >
+        <X className="h-3 w-3" />
+      </Button>
       <CardHeader className="flex-shrink-0 flex-row items-center space-x-2 bg-purple-500/10 p-3">
         <Bot className="h-6 w-6 text-purple-500" />
         <CardTitle className="text-base text-purple-400">{data.label || 'AI Test Plan Generator'}</CardTitle>

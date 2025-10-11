@@ -1,5 +1,5 @@
 import React, { memo, useRef } from 'react';
-import { Handle, Position, NodeResizer, NodeProps, Node } from '@xyflow/react';
+import { Handle, Position, NodeResizer, NodeProps, Node, useReactFlow } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -15,8 +15,11 @@ const createNewTestCase = (): TestCase => ({ id: '', testCase: '', category: '',
 export const TableNode = memo(({ data, id, selected }: NodeProps<Node<NodeData>>) => {
   const { updateNodeData, testCases = [] } = data; // Directly use testCases from props, provide a fallback
   const { toast } = useToast();
+  const { deleteElements } = useReactFlow();
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const handleDelete = () => deleteElements({ nodes: [{ id }] });
 
   // This node no longer has its own `useState` for testCases.
   // It is now a "controlled component".
@@ -64,9 +67,17 @@ export const TableNode = memo(({ data, id, selected }: NodeProps<Node<NodeData>>
   const scroll = (x: number, y: number) => scrollContainerRef.current?.scrollBy({ left: x, top: y, behavior: 'smooth' });
 
   return (
-    <Card className="w-full h-full p-4 bg-background border-border flex flex-col">
+    <Card className="w-full h-full p-4 bg-background border-border flex flex-col relative">
       <NodeResizer minWidth={800} minHeight={400} isVisible={selected} />
       <Handle type="target" position={Position.Top} />
+      <Button
+        onClick={handleDelete}
+        size="icon"
+        variant="destructive"
+        className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+      >
+        <X className="h-3 w-3" />
+      </Button>
       <div className="flex items-center justify-between mb-2 shrink-0"><div className="flex items-center gap-2"><Table className="h-4 w-4 text-primary" /><span className="text-sm font-medium">{data.label}</span></div><Button onClick={addTestCase} size="sm" variant="outline"><Plus className="h-3 w-3 mr-1" /> Add Row</Button></div>
       <div className="flex items-center justify-center gap-4 my-2 shrink-0"><Button onClick={() => scroll(-200, 0)} size="icon" variant="outline"><ChevronLeft className="h-4 w-4" /></Button><div className="flex flex-col gap-1"><Button onClick={() => scroll(0, -150)} size="icon" variant="outline"><ChevronUp className="h-4 w-4" /></Button><Button onClick={() => scroll(0, 150)} size="icon" variant="outline"><ChevronDown className="h-4 w-4" /></Button></div><Button onClick={() => scroll(200, 0)} size="icon" variant="outline"><ChevronRight className="h-4 w-4" /></Button></div>
       <div ref={scrollContainerRef} className="flex-1 overflow-auto border rounded-lg p-2 bg-muted/20">

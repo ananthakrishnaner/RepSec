@@ -1,17 +1,19 @@
 import React, { memo, useState, useEffect } from 'react';
-import { Handle, Position, NodeResizer } from '@xyflow/react';
+import { Handle, Position, NodeResizer, useReactFlow } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Type, Link } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Type, Link, X } from 'lucide-react';
 import { NodeData } from './types';
 
 interface TextInputNodeProps { data: NodeData; id: string; selected: boolean; }
 
 export const TextInputNode = memo<TextInputNodeProps>(({ data, id, selected }) => {
   const { updateNodeData, fieldType } = data;
+  const { deleteElements } = useReactFlow();
   const [value, setValue] = useState(data.value || '');
   const [url, setUrl] = useState(data.url || '');
   const [multiline, setMultiline] = useState(data.multiline || false);
@@ -23,11 +25,20 @@ export const TextInputNode = memo<TextInputNodeProps>(({ data, id, selected }) =
 
   const handleValueChange = (newValue: string) => { setValue(newValue); updateNodeData?.(id, 'value', newValue); };
   const handleUrlChange = (newUrl: string) => { setUrl(newUrl); updateNodeData?.(id, 'url', newUrl); };
+  const handleDelete = () => deleteElements({ nodes: [{ id }] });
 
   return (
-    <Card className="w-full h-full p-4 bg-background border-border shadow-md flex flex-col">
+    <Card className="w-full h-full p-4 bg-background border-border shadow-md flex flex-col relative">
       <NodeResizer minWidth={320} minHeight={200} isVisible={selected} />
       <Handle type="target" position={Position.Top} />
+      <Button
+        onClick={handleDelete}
+        size="icon"
+        variant="destructive"
+        className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+      >
+        <X className="h-3 w-3" />
+      </Button>
       <div className="flex items-center gap-2 mb-3 shrink-0"><Type className="h-4 w-4 text-primary" /><span className="text-sm font-medium">{data.label}</span></div>
       <div className="space-y-3 flex-1 flex flex-col min-h-0">
         <div className="flex items-center justify-between"><Label htmlFor={`${id}-multiline`} className="text-xs">Multi-line</Label><Switch id={`${id}-multiline`} checked={multiline} onCheckedChange={setMultiline} /></div>

@@ -1,5 +1,5 @@
 import React, { memo, useState, useEffect, useRef } from 'react';
-import { Handle, Position, NodeResizer, NodeProps, Node } from '@xyflow/react';
+import { Handle, Position, NodeResizer, NodeProps, Node, useReactFlow } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,7 @@ const getFileIcon = (filename: string) => {
 export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<CustomTableData>>) => {
   const { updateNodeData } = data;
   const { toast } = useToast();
+  const { deleteElements } = useReactFlow();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   
@@ -198,12 +199,23 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
     setCellFileEnabled(newCellFileEnabled);
   };
 
+  const handleDelete = () => deleteElements({ nodes: [{ id }] });
+
+
   const scroll = (x: number) => scrollContainerRef.current?.scrollBy({ left: x, behavior: 'smooth' });
 
   return (
-    <Card className="w-full h-full p-4 bg-background border-border flex flex-col">
+    <Card className="w-full h-full p-4 bg-background border-border flex flex-col relative">
       <NodeResizer minWidth={500} minHeight={300} isVisible={selected} />
       <Handle type="target" position={Position.Top} />
+      <Button
+        onClick={handleDelete}
+        size="icon"
+        variant="destructive"
+        className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+      >
+        <X className="h-3 w-3" />
+      </Button>
       
       <div className="flex items-center justify-between mb-3 shrink-0">
         <div className="flex items-center gap-2">

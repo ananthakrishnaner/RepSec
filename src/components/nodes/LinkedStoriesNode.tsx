@@ -1,11 +1,11 @@
 import React, { memo, useState } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Link, Plus, Minus, ExternalLink } from 'lucide-react';
+import { Link, Plus, Minus, ExternalLink, X } from 'lucide-react';
 
 interface LinkedStory {
   id: string;
@@ -26,8 +26,11 @@ interface LinkedStoriesNodeProps {
 
 export const LinkedStoriesNode = memo<LinkedStoriesNodeProps>(({ data, id }) => {
   const updateNodeData = data.updateNodeData;
+  const { deleteElements } = useReactFlow();
   const [changeDescription, setChangeDescription] = useState(data.changeDescription || '');
   const [linkedStories, setLinkedStories] = useState<LinkedStory[]>(data.linkedStories || []);
+  
+  const handleDelete = () => deleteElements({ nodes: [{ id }] });
 
   const addLinkedStory = () => {
     const updated = [...linkedStories, {
@@ -59,8 +62,16 @@ export const LinkedStoriesNode = memo<LinkedStoriesNodeProps>(({ data, id }) => 
   };
 
   return (
-    <Card className="w-[600px] p-4 bg-background border-border">
+    <Card className="w-[600px] p-4 bg-background border-border relative">
       <Handle type="target" position={Position.Top} className="w-2 h-2" />
+      <Button
+        onClick={handleDelete}
+        size="icon"
+        variant="destructive"
+        className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+      >
+        <X className="h-3 w-3" />
+      </Button>
       
       <div className="flex items-center gap-2 mb-4">
         <Link className="h-4 w-4 text-primary" />

@@ -1,5 +1,5 @@
 import React, { memo, useState, useEffect } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -11,8 +11,11 @@ interface FileUploadNodeProps { data: NodeData; id: string; }
 
 export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
   const { updateNodeData } = data;
+  const { deleteElements } = useReactFlow();
   const [files, setFiles] = useState<UploadedFile[]>(data.files || []);
   const { toast } = useToast();
+  
+  const handleDelete = () => deleteElements({ nodes: [{ id }] });
 
   useEffect(() => {
     return () => { files.forEach(file => URL.revokeObjectURL(file.previewUrl)); };
@@ -34,8 +37,16 @@ export const FileUploadNode = memo<FileUploadNodeProps>(({ data, id }) => {
   };
 
   return (
-    <Card className="w-80 p-4 bg-background border-border">
+    <Card className="w-80 p-4 bg-background border-border relative">
       <Handle type="target" position={Position.Top} />
+      <Button
+        onClick={handleDelete}
+        size="icon"
+        variant="destructive"
+        className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+      >
+        <X className="h-3 w-3" />
+      </Button>
       <div className="flex items-center gap-2 mb-3"><Upload className="h-4 w-4 text-primary" /><span className="text-sm font-medium">File Attachments</span></div>
       <div className="space-y-3">
         <Button asChild variant="outline" className="w-full"><label className="cursor-pointer"><Upload className="h-4 w-4 mr-2" />Choose Files (Any Type)<input type="file" multiple onChange={(e) => e.target.files && handleFileSelect(e.target.files)} className="hidden" /></label></Button>
