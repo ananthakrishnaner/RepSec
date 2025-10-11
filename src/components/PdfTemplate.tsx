@@ -112,6 +112,119 @@ const PdfComponentRenderer: React.FC<{ component: ReportComponent }> = ({ compon
                 )}
             </div>
         );
+
+    case 'customTable':
+      return (
+        <div className="section-break">
+          <h2 className="section-title">Custom Table</h2>
+          <table className="findings-table">
+            <thead>
+              <tr>
+                {(data.headers || []).map((header: string, idx: number) => (
+                  <th key={idx}>{header || `Column ${idx + 1}`}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {(data.cellData && data.cellData.length > 0) ? (
+                data.cellData.map((row: string[], rowIndex: number) => (
+                  <tr key={rowIndex}>
+                    {row.map((cell: string, colIndex: number) => (
+                      <td key={colIndex}>
+                        {cell || '-'}
+                        {data.cellFileEnabled?.[rowIndex]?.[colIndex] && 
+                         data.fileData?.[rowIndex]?.[colIndex] && 
+                         data.fileData[rowIndex][colIndex].length > 0 && (
+                          <div style={{ marginTop: '8px' }}>
+                            {data.fileData[rowIndex][colIndex].map((file: UploadedFile, fileIdx: number) => (
+                              isImageFile(file.name) ? (
+                                <img 
+                                  key={fileIdx}
+                                  src={file.previewUrl} 
+                                  alt={file.name}
+                                  style={{ maxWidth: '200px', marginTop: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                                />
+                              ) : (
+                                <div key={fileIdx} style={{ fontSize: '8pt', color: '#718096', marginTop: '4px' }}>
+                                  📎 {file.name}
+                                </div>
+                              )
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <tr><td colSpan={data.headers?.length || 1}>No data</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      );
+
+    case 'vulnerabilityTable':
+      return (
+        <div className="section-break">
+          <h2 className="section-title">Vulnerabilities</h2>
+          {(data.vulnerabilities && data.vulnerabilities.length > 0) ? (
+            data.vulnerabilities.map((vuln: any, vulnIndex: number) => (
+              <div key={vulnIndex} style={{ marginBottom: '24px', pageBreakInside: 'avoid' }}>
+                <h3 style={{ fontSize: '14pt', fontWeight: 'bold', color: '#2d3748', marginBottom: '8px' }}>
+                  Vulnerability {vulnIndex + 1}: {vuln.header || 'Untitled'}
+                </h3>
+                
+                <div style={{ marginBottom: '12px' }}>
+                  <strong style={{ fontSize: '10pt' }}>Description:</strong>
+                  <p className="prose-text" style={{ marginTop: '4px' }}>{vuln.description || 'N/A'}</p>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <strong style={{ fontSize: '10pt' }}>Impact:</strong>
+                  <p className="prose-text" style={{ marginTop: '4px' }}>{vuln.impact || 'N/A'}</p>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <strong style={{ fontSize: '10pt' }}>Mitigation:</strong>
+                  <p className="prose-text" style={{ marginTop: '4px' }}>{vuln.mitigation || 'N/A'}</p>
+                </div>
+
+                {vuln.stepsToReproduce && vuln.stepsToReproduce.length > 0 && (
+                  <div style={{ marginBottom: '12px' }}>
+                    <strong style={{ fontSize: '10pt' }}>Steps to Reproduce:</strong>
+                    <ol style={{ marginLeft: '1.5rem', marginTop: '8px' }}>
+                      {vuln.stepsToReproduce.map((step: any, stepIndex: number) => (
+                        <li key={stepIndex} style={{ marginBottom: '12px', pageBreakInside: 'avoid' }}>
+                          <p style={{ fontSize: '10pt', margin: 0 }}>{step.text || 'N/A'}</p>
+                          {step.screenshot && (
+                            <div style={{ marginTop: '8px' }}>
+                              <img 
+                                src={step.screenshot.previewUrl} 
+                                alt={step.label || 'Screenshot'}
+                                style={{ maxWidth: '90%', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                              />
+                              {step.label && (
+                                <p style={{ fontSize: '9pt', fontStyle: 'italic', color: '#718096', marginTop: '4px' }}>
+                                  {step.label}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
+                <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '16px 0' }} />
+              </div>
+            ))
+          ) : (
+            <p className="prose-text italic">No vulnerabilities documented.</p>
+          )}
+        </div>
+      );
     
     default: return null;
   }

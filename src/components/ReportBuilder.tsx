@@ -145,10 +145,12 @@ const ReportBuilderInner = () => {
           let customTableMd = `### Custom Table\n\n| ${headers} |\n| ${separator} |\n`;
           (data.cellData || []).forEach((row: string[], rowIndex: number) => {
             const rowData = row.map((cell: string, colIndex: number) => {
+              let cellContent = cell || '-';
               if (data.cellFileEnabled?.[rowIndex]?.[colIndex] && data.fileData?.[rowIndex]?.[colIndex]) {
-                return data.fileData[rowIndex][colIndex].map((f: UploadedFile) => `[${f.name}](${f.path})`).join('<br>');
+                const fileLinks = data.fileData[rowIndex][colIndex].map((f: UploadedFile) => `[${f.name}](${f.path})`).join('<br>');
+                cellContent = cellContent ? `${cellContent}<br>${fileLinks}` : fileLinks;
               }
-              return cell || '-';
+              return cellContent;
             }).join(' | ');
             customTableMd += `| ${rowData} |\n`;
           });
@@ -213,6 +215,15 @@ const ReportBuilderInner = () => {
           if (step.screenshot) evidenceFolder.file(step.screenshot.path.replace('./evidence/', ''), step.screenshot.file);
         });
       });
+      if (node.data.cellFileEnabled && node.data.fileData) {
+        node.data.fileData.forEach((row: UploadedFile[][]) => {
+          row.forEach((cellFiles: UploadedFile[]) => {
+            if (cellFiles) cellFiles.forEach((file: UploadedFile) => {
+              evidenceFolder.file(file.path.replace('./evidence/', ''), file.file);
+            });
+          });
+        });
+      }
     });
     try {
       const content = await zip.generateAsync({ type: "blob" });
@@ -235,7 +246,20 @@ const ReportBuilderInner = () => {
     if (elementToCapture) {
       const projectNameComponent = nodes.find(n => n.data.fieldType === 'projectName');
       const filename = projectNameComponent ? `${projectNameComponent.data.value}_SecurityReport.pdf` : 'SecurityReport.pdf';
-      const options = { margin: 0, filename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+      const options = { 
+        margin: 0, 
+        filename, 
+        image: { type: 'jpeg', quality: 0.98 }, 
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true, 
+          allowTaint: true,
+          logging: false,
+          imageTimeout: 0
+        }, 
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
       try {
         await html2pdf().from(elementToCapture).set(options).save();
         toast({ title: "PDF Exported Successfully!" });
