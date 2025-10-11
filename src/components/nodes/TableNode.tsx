@@ -1,5 +1,5 @@
 import React, { memo, useRef } from 'react';
-import { Handle, Position, NodeResizer, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeResizer, NodeProps, Node } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { UploadedFile, NodeData, TestCase } from './types';
 // The function to create a new, empty test case row
 const createNewTestCase = (): TestCase => ({ id: '', testCase: '', category: '', exploited: 'No', url: '', evidence: [], status: 'Not Applicable', tester: '' });
 
-export const TableNode = memo(({ data, id, selected }: NodeProps<NodeData>) => {
+export const TableNode = memo(({ data, id, selected }: NodeProps<Node<NodeData>>) => {
   const { updateNodeData, testCases = [] } = data; // Directly use testCases from props, provide a fallback
   const { toast } = useToast();
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});

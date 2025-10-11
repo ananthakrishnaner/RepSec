@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react';
-import { Handle, Position, NodeResizer, NodeProps, useReactFlow } from '@xyflow/react';
+import { Handle, Position, NodeResizer, NodeProps, useReactFlow, Node } from '@xyflow/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,7 @@ import { NodeData, TestCase } from './types';
 import { generateComprehensiveTestPlan } from '@/lib/gemini';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-export const AIGeneratorNode = memo(({ id, data, selected }: NodeProps<NodeData>) => {
+export const AIGeneratorNode = memo(({ id, data, selected }: NodeProps<Node<NodeData>>) => {
   const { getEdges, setNodes } = useReactFlow();
   const { toast } = useToast();
 

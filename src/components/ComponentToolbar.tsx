@@ -9,6 +9,7 @@ const components = [
   { type: 'textInput', label: 'Baselines', icon: Type, description: 'Add baseline information', fieldType: 'baselines' },
   { type: 'linkedStories', label: 'Linked Stories (Jira)', icon: Link, description: 'Link to Jira tickets or stories' },
   { type: 'table', label: 'Test Cases Table', icon: Table, description: 'A detailed table for test cases' },
+  { type: 'customTable', label: 'Custom Table', icon: Table, description: 'Create a table with custom rows/columns' },
   { type: 'aiGenerator', label: 'AI Test Case Generator', icon: Bot, description: 'Use AI to populate a Test Case Table' },
   { type: 'codeSnippet', label: 'Code Snippet', icon: Code, description: 'For HTTP requests or code blocks' },
   { type: 'fileUpload', label: 'File Upload', icon: Upload, description: 'Attach images or documents' },

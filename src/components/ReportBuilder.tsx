@@ -23,6 +23,7 @@ import { SectionHeaderNode } from './nodes/SectionHeaderNode';
 import { LinkedStoriesNode } from './nodes/LinkedStoriesNode';
 import { StepsNode } from './nodes/StepsNode';
 import { AIGeneratorNode } from './nodes/AIGeneratorNode';
+import { CustomTableNode } from './nodes/CustomTableNode';
 import { initialNodes as defaultInitialNodes } from './initialElements';
 import { UploadedFile, NodeData } from './nodes/types';
 import { getLayoutedElements } from '@/lib/layout';
@@ -67,7 +68,7 @@ const ReportBuilderInner = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(runtimeInitialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const nodeTypes = { textInput: TextInputNode, table: TableNode, codeSnippet: CodeSnippetNode, fileUpload: FileUploadNode, sectionHeader: SectionHeaderNode, linkedStories: LinkedStoriesNode, steps: StepsNode, aiGenerator: AIGeneratorNode };
+  const nodeTypes = { textInput: TextInputNode, table: TableNode, codeSnippet: CodeSnippetNode, fileUpload: FileUploadNode, sectionHeader: SectionHeaderNode, linkedStories: LinkedStoriesNode, steps: StepsNode, aiGenerator: AIGeneratorNode, customTable: CustomTableNode };
   
   const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
   const onDragOver = useCallback((event: React.DragEvent) => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }, []);
@@ -235,7 +236,7 @@ const ReportBuilderInner = () => {
             </TabsList>
             <TabsContent value="builder" className="flex-1 m-0">
               <div ref={reactFlowWrapper} className="h-full w-full">
-                <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} nodeTypes={nodeTypes} fitView nodesResizable>
+                <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} onDrop={onDrop} onDragOver={onDragOver} nodeTypes={nodeTypes} fitView>
                   <Background /><Controls /><MiniMap />
                 </ReactFlow>
               </div>
