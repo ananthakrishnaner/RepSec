@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ReactFlow, useNodesState, useEdgesState, addEdge, Connection, Edge, Node, Background, Controls, MiniMap, ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import JSZip from 'jszip';
@@ -8,7 +8,7 @@ import { createRoot } from 'react-dom/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ReportPreview, ReportComponent } from './ReportPreview';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, Wrench, Trash2, FileArchive, Download, Upload, GitBranch, FileJson, FileText, Settings } from 'lucide-react';
+import { Eye, Wrench, Trash2, FileArchive, Download, Upload, GitBranch, FileJson, FileText, Settings, Undo2, Redo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,7 @@ import { initialNodes as defaultInitialNodes } from './initialElements';
 import { UploadedFile, NodeData } from './nodes/types';
 import { getLayoutedElements } from '@/lib/layout';
 import { PdfTemplate } from './PdfTemplate';
+import { useHistory } from '@/hooks/useHistory';
 
 const nodeIdCounter = { current: 0 };
 const getId = () => `dndnode_${nodeIdCounter.current++}`;
@@ -58,7 +59,7 @@ const ReportBuilderInner = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [previewData, setPreviewData] = useState<ReportComponent[] | null>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
-  
+
   const updateNodeData = useCallback((nodeId: string, field: string, value: any) => {
     setNodes((currentNodes) =>
       currentNodes.map((node) => node.id === nodeId ? { ...node, data: { ...node.data, [field]: value } } : node)
@@ -68,6 +69,77 @@ const ReportBuilderInner = () => {
   const runtimeInitialNodes: Node<NodeData>[] = defaultInitialNodes.map(node => ({ ...node, data: { ...node.data, updateNodeData } }));
   const [nodes, setNodes, onNodesChange] = useNodesState(runtimeInitialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  const {
+    pushHistory,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    isUndoRedoRef,
+    initializedRef,
+  } = useHistory({
+    limit: 50,
+    getSnapshot: () => ({ nodes, edges }),
+  });
+
+  useEffect(() => {
+    if (isUndoRedoRef.current) return;
+    if (!initializedRef.current) { initializedRef.current = true; return; }
+    pushHistory({ nodes, edges });
+  }, [nodes, edges, pushHistory]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMod = e.ctrlKey || e.metaKey;
+      if (isMod && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        const entry = undo();
+        if (entry) {
+          isUndoRedoRef.current = true;
+          setNodes(entry.nodes);
+          setEdges(entry.edges);
+          isUndoRedoRef.current = false;
+          toast({ title: "Undone" });
+        }
+      }
+      if ((isMod && e.key === 'z' && e.shiftKey) || (isMod && e.key === 'y')) {
+        e.preventDefault();
+        const entry = redo();
+        if (entry) {
+          isUndoRedoRef.current = true;
+          setNodes(entry.nodes);
+          setEdges(entry.edges);
+          isUndoRedoRef.current = false;
+          toast({ title: "Redone" });
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
+
+  const handleUndo = useCallback(() => {
+    const entry = undo();
+    if (entry) {
+      isUndoRedoRef.current = true;
+      setNodes(entry.nodes);
+      setEdges(entry.edges);
+      isUndoRedoRef.current = false;
+      toast({ title: "Undone" });
+    }
+  }, [undo]);
+
+  const handleRedo = useCallback(() => {
+    const entry = redo();
+    if (entry) {
+      isUndoRedoRef.current = true;
+      setNodes(entry.nodes);
+      setEdges(entry.edges);
+      isUndoRedoRef.current = false;
+      toast({ title: "Redone" });
+    }
+  }, [redo]);
 
   const nodeTypes = { textInput: TextInputNode, table: TableNode, codeSnippet: CodeSnippetNode, fileUpload: FileUploadNode, sectionHeader: SectionHeaderNode, linkedStories: LinkedStoriesNode, steps: StepsNode, aiGenerator: AIGeneratorNode, customTable: CustomTableNode, vulnerabilityTable: VulnerabilityTableNode };
   
@@ -278,6 +350,26 @@ const ReportBuilderInner = () => {
           <div className="p-4 border-b border-border/30 relative"><h2 className="text-xl font-bold text-primary">RepSec Builder</h2><p className="text-sm text-muted-foreground">Visual Report Generator</p><SettingsModal/></div>
           <div className="flex-1 overflow-y-auto"><ComponentToolbar /></div>
           <div className="p-4 border-t border-border/30 space-y-2">
+            <div className="flex items-center justify-center gap-1 pb-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleUndo}
+                disabled={!canUndo}
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRedo}
+                disabled={!canRedo}
+                title="Redo (Ctrl+Shift+Z)"
+              >
+                <Redo2 className="h-4 w-4" />
+              </Button>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <Button onClick={exportDesign} variant="outline"><FileJson className="w-4 h-4 mr-2" />Export Design</Button>
               <Button asChild variant="outline"><label className="cursor-pointer flex items-center justify-center"><Upload className="w-4 h-4 mr-2" />Import Design<input type="file" accept=".json" className="hidden" onChange={importDesign} /></label></Button>
