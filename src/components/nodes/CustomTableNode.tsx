@@ -347,7 +347,7 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
                       </div>
                       {cellFileEnabled[rowIndex][colIndex] ? (
                         <div className="space-y-1">
-                          <div className="max-h-20 overflow-y-auto space-y-1">
+                          <div className="max-h-64 overflow-y-auto space-y-2">
                             {fileData[rowIndex][colIndex].map((file, fileIndex) => {
                               const FileIcon = getFileIcon(file.name);
                               return (
