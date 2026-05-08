@@ -63,6 +63,26 @@ export const TableNode = memo(({ data, id, selected }: NodeProps<Node<NodeData>>
     URL.revokeObjectURL(testCases[tcIndex].evidence[evIndex].previewUrl);
     updateTestCaseField(tcIndex, 'evidence', testCases[tcIndex].evidence.filter((_, i) => i !== evIndex));
   };
+
+  const handlePasteEvidence = (tcIndex: number, e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const blob = items[i].getAsFile();
+        if (blob) {
+          const ext = items[i].type.split('/')[1] || 'png';
+          imageFiles.push(new window.File([blob], `pasted-${Date.now()}-${i}.${ext}`, { type: items[i].type }));
+        }
+      }
+    }
+    if (imageFiles.length === 0) return;
+    e.preventDefault();
+    const dt = new DataTransfer();
+    imageFiles.forEach(f => dt.items.add(f));
+    handleEvidenceUpload(tcIndex, dt.files);
+  };
   
   const scroll = (x: number, y: number) => scrollContainerRef.current?.scrollBy({ left: x, top: y, behavior: 'smooth' });
 
