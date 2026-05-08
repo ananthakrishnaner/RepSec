@@ -37,6 +37,7 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
   
   const [rows, setRows] = useState(data.rows || 3);
   const [cols, setCols] = useState(data.cols || 3);
+  const [expandedCells, setExpandedCells] = useState<Record<string, boolean>>({});
   const [headers, setHeaders] = useState<string[]>(data.headers || Array(data.cols || 3).fill(''));
   const [cellData, setCellData] = useState<string[][]>(
     data.cellData || Array(data.rows || 3).fill(null).map(() => Array(data.cols || 3).fill(''))
