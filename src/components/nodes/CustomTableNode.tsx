@@ -193,6 +193,28 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
     setFileData(newFileData);
   };
 
+  const handlePasteImage = (rowIndex: number, colIndex: number, e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const blob = items[i].getAsFile();
+        if (blob) {
+          const ext = items[i].type.split('/')[1] || 'png';
+          imageFiles.push(new window.File([blob], `pasted-${Date.now()}-${i}.${ext}`, { type: items[i].type }));
+        }
+      }
+    }
+    if (imageFiles.length === 0) return;
+    e.preventDefault();
+    const dt = new DataTransfer();
+    imageFiles.forEach(f => dt.items.add(f));
+    handleFileUpload(rowIndex, colIndex, dt.files);
+  };
+
+  const isImage = (name: string) => /\.(jpe?g|png|gif|webp|svg)$/i.test(name);
+
   const toggleCellFileUpload = (rowIndex: number, colIndex: number) => {
     const newCellFileEnabled = [...cellFileEnabled];
     newCellFileEnabled[rowIndex][colIndex] = !newCellFileEnabled[rowIndex][colIndex];
@@ -329,19 +351,24 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
                             {fileData[rowIndex][colIndex].map((file, fileIndex) => {
                               const FileIcon = getFileIcon(file.name);
                               return (
-                                <div key={fileIndex} className="flex items-center justify-between bg-background p-1 rounded text-xs">
-                                  <div className="flex items-center gap-1 truncate">
-                                    <FileIcon className="h-3 w-3 shrink-0" />
-                                    <span className="truncate">{file.name}</span>
+                                <div key={fileIndex} className="space-y-1">
+                                  <div className="flex items-center justify-between bg-background p-1 rounded text-xs">
+                                    <div className="flex items-center gap-1 truncate">
+                                      <FileIcon className="h-3 w-3 shrink-0" />
+                                      <span className="truncate">{file.name}</span>
+                                    </div>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-5 w-5 shrink-0"
+                                      onClick={() => removeFile(rowIndex, colIndex, fileIndex)}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
                                   </div>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-5 w-5 shrink-0"
-                                    onClick={() => removeFile(rowIndex, colIndex, fileIndex)}
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
+                                  {isImage(file.name) && (
+                                    <img src={file.previewUrl} alt={file.name} className="max-w-full h-auto rounded border" />
+                                  )}
                                 </div>
                               );
                             })}
@@ -354,6 +381,14 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
                           >
                             <FileUp className="h-3 w-3 mr-1" /> Upload Files
                           </Button>
+                          <div
+                            tabIndex={0}
+                            onPaste={(e) => handlePasteImage(rowIndex, colIndex, e)}
+                            className="w-full border border-dashed rounded text-[10px] text-muted-foreground text-center py-1 nodrag nopan focus:outline-none focus:ring-2 focus:ring-primary cursor-text"
+                            title="Click then Ctrl+V to paste image"
+                          >
+                            Paste Image (Ctrl+V)
+                          </div>
                           <input
                             ref={el => fileInputRefs.current[`${rowIndex}-${colIndex}`] = el}
                             type="file"
@@ -368,6 +403,7 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
                           <Input
                             value={cell}
                             onChange={(e) => updateCell(rowIndex, colIndex, e.target.value)}
+                            onPaste={(e) => handlePasteImage(rowIndex, colIndex, e)}
                             className="text-xs nodrag nopan h-7"
                           />
                           {colIndex === 0 && rows > 1 && (
