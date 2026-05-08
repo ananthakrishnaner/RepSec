@@ -193,6 +193,28 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
     setFileData(newFileData);
   };
 
+  const handlePasteImage = (rowIndex: number, colIndex: number, e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const blob = items[i].getAsFile();
+        if (blob) {
+          const ext = items[i].type.split('/')[1] || 'png';
+          imageFiles.push(new window.File([blob], `pasted-${Date.now()}-${i}.${ext}`, { type: items[i].type }));
+        }
+      }
+    }
+    if (imageFiles.length === 0) return;
+    e.preventDefault();
+    const dt = new DataTransfer();
+    imageFiles.forEach(f => dt.items.add(f));
+    handleFileUpload(rowIndex, colIndex, dt.files);
+  };
+
+  const isImage = (name: string) => /\.(jpe?g|png|gif|webp|svg)$/i.test(name);
+
   const toggleCellFileUpload = (rowIndex: number, colIndex: number) => {
     const newCellFileEnabled = [...cellFileEnabled];
     newCellFileEnabled[rowIndex][colIndex] = !newCellFileEnabled[rowIndex][colIndex];
