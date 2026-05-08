@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Table, Plus, Trash2, Settings2, ChevronLeft, ChevronRight, FileUp, X, FileText, Image as ImageIcon, File } from 'lucide-react';
+import { Table, Plus, Trash2, Settings2, ChevronLeft, ChevronRight, FileUp, X, FileText, Image as ImageIcon, File, ChevronDown, ChevronUp } from 'lucide-react';
 import { NodeData, UploadedFile } from './types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
