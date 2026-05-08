@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Table, Plus, Trash2, Settings2, ChevronLeft, ChevronRight, FileUp, X, FileText, Image as ImageIcon, File } from 'lucide-react';
+import { Table, Plus, Trash2, Settings2, ChevronLeft, ChevronRight, FileUp, X, FileText, Image as ImageIcon, File, ChevronDown, ChevronUp } from 'lucide-react';
 import { NodeData, UploadedFile } from './types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -37,6 +37,7 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
   
   const [rows, setRows] = useState(data.rows || 3);
   const [cols, setCols] = useState(data.cols || 3);
+  const [expandedCells, setExpandedCells] = useState<Record<string, boolean>>({});
   const [headers, setHeaders] = useState<string[]>(data.headers || Array(data.cols || 3).fill(''));
   const [cellData, setCellData] = useState<string[][]>(
     data.cellData || Array(data.rows || 3).fill(null).map(() => Array(data.cols || 3).fill(''))
@@ -346,58 +347,78 @@ export const CustomTableNode = memo(({ data, id, selected }: NodeProps<Node<Cust
                         </Label>
                       </div>
                       {cellFileEnabled[rowIndex][colIndex] ? (
-                        <div className="space-y-1">
-                          <div className="max-h-64 overflow-y-auto space-y-2">
-                            {fileData[rowIndex][colIndex].map((file, fileIndex) => {
-                              const FileIcon = getFileIcon(file.name);
-                              return (
-                                <div key={fileIndex} className="space-y-1">
-                                  <div className="flex items-center justify-between bg-background p-1 rounded text-xs">
-                                    <div className="flex items-center gap-1 truncate">
-                                      <FileIcon className="h-3 w-3 shrink-0" />
-                                      <span className="truncate">{file.name}</span>
-                                    </div>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      className="h-5 w-5 shrink-0"
-                                      onClick={() => removeFile(rowIndex, colIndex, fileIndex)}
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                  {isImage(file.name) && (
-                                    <img src={file.previewUrl} alt={file.name} className="max-w-full h-auto rounded border" />
-                                  )}
+                        (() => {
+                          const cellKey = `${rowIndex}-${colIndex}`;
+                          const expanded = expandedCells[cellKey] ?? true;
+                          const files = fileData[rowIndex][colIndex];
+                          return (
+                            <div className="space-y-1">
+                              {files.length > 0 && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="w-full h-6 text-xs justify-between nodrag nopan"
+                                  onClick={() => setExpandedCells(prev => ({ ...prev, [cellKey]: !expanded }))}
+                                >
+                                  <span>{files.length} file{files.length !== 1 ? 's' : ''}</span>
+                                  {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                                </Button>
+                              )}
+                              {expanded && (
+                                <div className={`space-y-2 ${files.length > 3 ? 'max-h-80 overflow-y-auto' : ''}`}>
+                                  {files.map((file, fileIndex) => {
+                                    const FileIcon = getFileIcon(file.name);
+                                    return (
+                                      <div key={fileIndex} className="space-y-1">
+                                        <div className="flex items-center justify-between bg-background p-1 rounded text-xs">
+                                          <div className="flex items-center gap-1 truncate">
+                                            <FileIcon className="h-3 w-3 shrink-0" />
+                                            <span className="truncate">{file.name}</span>
+                                          </div>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-5 w-5 shrink-0"
+                                            onClick={() => removeFile(rowIndex, colIndex, fileIndex)}
+                                          >
+                                            <X className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                        {isImage(file.name) && (
+                                          <img src={file.previewUrl} alt={file.name} className="max-w-full h-auto rounded border" />
+                                        )}
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                              );
-                            })}
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full text-xs nodrag nopan h-6"
-                            onClick={() => fileInputRefs.current[`${rowIndex}-${colIndex}`]?.click()}
-                          >
-                            <FileUp className="h-3 w-3 mr-1" /> Upload Files
-                          </Button>
-                          <div
-                            tabIndex={0}
-                            onPaste={(e) => handlePasteImage(rowIndex, colIndex, e)}
-                            className="w-full border border-dashed rounded text-[10px] text-muted-foreground text-center py-1 nodrag nopan focus:outline-none focus:ring-2 focus:ring-primary cursor-text"
-                            title="Click then Ctrl+V to paste image"
-                          >
-                            Paste Image (Ctrl+V)
-                          </div>
-                          <input
-                            ref={el => fileInputRefs.current[`${rowIndex}-${colIndex}`] = el}
-                            type="file"
-                            multiple
-                            accept="image/*,.pdf,.doc,.docx,.csv,.xlsx,.xls"
-                            className="hidden"
-                            onChange={(e) => e.target.files && handleFileUpload(rowIndex, colIndex, e.target.files)}
-                          />
-                        </div>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full text-xs nodrag nopan h-6"
+                                onClick={() => fileInputRefs.current[cellKey]?.click()}
+                              >
+                                <FileUp className="h-3 w-3 mr-1" /> Upload Files
+                              </Button>
+                              <div
+                                tabIndex={0}
+                                onPaste={(e) => handlePasteImage(rowIndex, colIndex, e)}
+                                className="w-full border border-dashed rounded text-[10px] text-muted-foreground text-center py-1 nodrag nopan focus:outline-none focus:ring-2 focus:ring-primary cursor-text"
+                                title="Click then Ctrl+V to paste image"
+                              >
+                                Paste Image (Ctrl+V)
+                              </div>
+                              <input
+                                ref={el => fileInputRefs.current[cellKey] = el}
+                                type="file"
+                                multiple
+                                accept="image/*,.pdf,.doc,.docx,.csv,.xlsx,.xls"
+                                className="hidden"
+                                onChange={(e) => e.target.files && handleFileUpload(rowIndex, colIndex, e.target.files)}
+                              />
+                            </div>
+                          );
+                        })()
                       ) : (
                         <div className="flex items-center gap-1">
                           <Input
